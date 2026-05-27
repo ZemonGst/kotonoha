@@ -1,0 +1,27 @@
+{
+  "version": "7",
+  "dialect": "postgresql",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "7",
+      "when": 1779294684954,
+      "tag": "0000_rare_stellaris",
+      "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1779296985742,
+      "tag": "0001_modern_frightful_four",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1779456412136,
+      "tag": "0002_complex_karen_page",
+      "breakpoints": true
+    }
+  ]
+}
