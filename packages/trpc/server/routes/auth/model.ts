@@ -1,9 +1,5 @@
 import { z } from 'zod';
 
-// ---------------------------------------------------------------------------
-// Shared base schemas
-// ---------------------------------------------------------------------------
-
 // Shared email + password fields used by both create and sign-in schemas.
 const credentialsSchema = z.object({
     email: z.email().describe('Email of the user'),
@@ -25,19 +21,11 @@ const userSuccessOutputSchema = successOutputSchema.extend({
     id: z.string().describe('ID of the user'),
 });
 
-// ---------------------------------------------------------------------------
-// Create user
-// ---------------------------------------------------------------------------
-
 export const createUserWithEmailAndPasswordInputSchema = credentialsSchema.extend({
     fullName: z.string().min(2).max(80).describe('Full name of the user'),
 });
 
 export const createUserWithEmailAndPasswordOutputSchema = userSuccessOutputSchema;
-
-// ---------------------------------------------------------------------------
-// OTP
-// ---------------------------------------------------------------------------
 
 export const verifyOtpInputSchema = userIdSchema.extend({
     otp: z.string().length(6).describe('6 digit OTP'),
@@ -49,17 +37,9 @@ export const resendOtpInputSchema = userIdSchema;
 
 export const resendOtpOutputSchema = successOutputSchema;
 
-// ---------------------------------------------------------------------------
-// Sign in
-// ---------------------------------------------------------------------------
-
 export const signInWithEmailAndPasswordInputSchema = credentialsSchema;
 
 export const signInWithEmailAndPasswordOutputSchema = userSuccessOutputSchema;
-
-// ---------------------------------------------------------------------------
-// Refresh / logout
-// ---------------------------------------------------------------------------
 
 export const refreshAccessTokenOutputSchema = successOutputSchema;
 
