@@ -78,7 +78,7 @@ export default function LoginPage() {
         ease: "power2.in",
         onComplete: () => {
           // Redirect to dashboard or home after successful login
-          router.push('/')
+          router.push('/dashboard')
         }
       })
     } catch (err: any) {

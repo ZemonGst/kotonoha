@@ -1,4 +1,4 @@
-import { publicProcedure, router } from "../../trpc";
+import { publicProcedure, protectedProcedure, router } from "../../trpc";
 import { generatePath } from "../../utils/path-generator";
 
 import { userService, otpService, emailService } from "../../services";
@@ -116,9 +116,8 @@ export const authRouter = router({
 
             return { success: true };
         }),
-
-    // Logout user
-    logout: publicProcedure
+    //logout the user
+    logout: protectedProcedure
         .meta(postMeta("/logout", "Logout user"))
         .output(logoutOutputSchema)
         .mutation(async ({ ctx }) => {
