@@ -1,6 +1,6 @@
 import UserService from "../user";
 
-import { dashboardUserSchema } from "./model";
+import { getMeOutputSchema } from "./model";
 
 class DashboardService {
     private userService = new UserService();
@@ -14,7 +14,7 @@ class DashboardService {
             throw new Error("User not found");
         }
 
-        return dashboardUserSchema.parseAsync(user);
+        return getMeOutputSchema.parseAsync(user);
     }
 }
 

@@ -1,8 +1,6 @@
 import { z } from "zod";
 
-// ---------------------------------------------------------------------------
 // Shared base schemas — single source of truth for common field definitions
-// ---------------------------------------------------------------------------
 
 // Both createUser and signIn require email + password with the same rules.
 // Defined once here; each schema either uses it directly or extends it.
@@ -28,9 +26,7 @@ export const signInWithEmailAndPasswordInputSchema = credentialsSchema;
 export type SignInWithEmailAndPasswordInputType =
     z.infer<typeof signInWithEmailAndPasswordInputSchema>;
 
-// ---------------------------------------------------------------------------
 // JWT token schemas
-// ---------------------------------------------------------------------------
 
 // Token type discriminator — embedded in every JWT so we can validate
 // the token is being used for its intended purpose without a DB lookup.
@@ -68,9 +64,7 @@ export const requiredAuthSchema = jwtPayloadSchema.refine(
 
 export type RequiredAuthType = z.infer<typeof requiredAuthSchema>;
 
-// ---------------------------------------------------------------------------
 // Refresh / logout schemas
-// ---------------------------------------------------------------------------
 
 // Used by the service's validateRefreshToken helper to accept
 // the raw refresh token string extracted from the cookie.

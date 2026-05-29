@@ -1,9 +1,6 @@
 import { z } from "zod";
 
-// ---------------------------------------------------------------------------
-// Shared base schemas — single source of truth for common field definitions
-// ---------------------------------------------------------------------------
-
+// Shared base schema for common form fields
 const formBaseSchema = z.object({
     title: z.string().min(1).max(100)
         .describe("The title of the form"),
@@ -12,13 +9,8 @@ const formBaseSchema = z.object({
         .describe("An optional description for the form"),
 });
 
-// ---------------------------------------------------------------------------
-// Form entity schema
-// ---------------------------------------------------------------------------
-
-// Represents the complete form entity record.
-// Reused as the returned output type for create operations instead of duplicating.
-export const formSchema = formBaseSchema.extend({
+// Output schema representing the completed form returned after creation
+export const createFormOutputSchema = formBaseSchema.extend({
     id: z.string().uuid()
         .describe("Unique identifier of the form"),
     
@@ -35,13 +27,9 @@ export const formSchema = formBaseSchema.extend({
         .describe("When the form was last updated"),
 });
 
-export type FormType = z.infer<typeof formSchema>;
+export type CreateFormOutputType = z.infer<typeof createFormOutputSchema>;
 
-// ---------------------------------------------------------------------------
-// Create form schemas
-// ---------------------------------------------------------------------------
-
-// Validates incoming data specifically for the initial create form flow
+// Input schema for creating a new form
 export const createFormInputSchema = formBaseSchema;
 
 export type CreateFormInputType = z.infer<typeof createFormInputSchema>;
