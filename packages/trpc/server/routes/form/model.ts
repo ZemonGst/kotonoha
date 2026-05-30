@@ -18,3 +18,12 @@ const formEntitySchema = formBaseSchema.extend({
 export const createFormInputSchema = formBaseSchema;
 
 export const createFormOutputSchema = formEntitySchema;
+
+export const getFormByIdInputSchema = z.object({
+    formId: z.string().uuid().describe('Unique identifier of the form'),
+});
+
+export const getFormByIdOutputSchema = z.object({
+    title: z.string(),
+    description: z.string().nullable().optional(),
+});

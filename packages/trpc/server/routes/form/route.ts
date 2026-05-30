@@ -6,6 +6,8 @@ import { formService } from "../../services";
 import {
     createFormInputSchema,
     createFormOutputSchema,
+    getFormByIdInputSchema,
+    getFormByIdOutputSchema,
 } from "./model";
 
 const TAGS = ["Form"];
@@ -24,6 +26,17 @@ function postMeta(path: string, summary: string) {
     };
 }
 
+function getMeta(path: string, summary: string) {
+    return {
+        openapi: {
+            method: "GET" as const,
+            path: getPath(path),
+            tags: TAGS,
+            summary,
+        },
+    };
+}
+
 export const formRouter = router({
     // Create form
     createForm: protectedProcedure
@@ -35,6 +48,22 @@ export const formRouter = router({
             
             // Pass the authenticated userId and the validated input to the form service
             const form = await formService.createForm(userId, input);
+            
+            return form;
+        }),
+
+    // Get form by ID
+    getFormById: protectedProcedure
+        .meta(getMeta("/getFormById", "Get a form by its ID"))
+        .input(getFormByIdInputSchema)
+        .output(getFormByIdOutputSchema)
+        .query(async ({ input, ctx }) => {
+            const { userId } = ctx;
+            
+            const form = await formService.getFormById({
+                formId: input.formId,
+                userId: userId,
+            });
             
             return form;
         }),

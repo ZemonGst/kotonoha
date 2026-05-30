@@ -21,27 +21,26 @@ export function CreateFormModal({ children }: { children: React.ReactNode }) {
     const [title, setTitle] = useState("");
     const [description, setDescription] = useState("");
 
-    const { createFormAsync, isPending } = useCreateForm();
     const router = useRouter();
 
-    const handleCreate = async () => {
-        if (!title.trim()) return;
-        
-        try {
-            const form = await createFormAsync({
-                title: title.trim(),
-                description: description.trim() || undefined,
-            });
-            
+    const { createForm, isPending } = useCreateForm({
+        onSuccess: (form) => {
             setOpen(false);
             setTitle("");
             setDescription("");
             
             // Redirect to the form builder page
             router.push(`/dashboard/form/${form.id}`);
-        } catch (error) {
-            console.error("Failed to create form", error);
         }
+    });
+
+    const handleCreate = () => {
+        if (!title.trim()) return;
+        
+        createForm({
+            title: title.trim(),
+            description: description.trim() || undefined,
+        });
     };
 
     return (

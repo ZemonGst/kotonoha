@@ -33,3 +33,19 @@ export type CreateFormOutputType = z.infer<typeof createFormOutputSchema>;
 export const createFormInputSchema = formBaseSchema;
 
 export type CreateFormInputType = z.infer<typeof createFormInputSchema>;
+
+// Input schema for getting a form by ID
+export const getFormByIdInputSchema = z.object({
+    formId: z.string().uuid().describe("Unique identifier of the form"),
+    userId: z.string().uuid().describe("ID of the user requesting the form"),
+});
+
+export type GetFormByIdInputType = z.infer<typeof getFormByIdInputSchema>;
+
+// Output schema for getting a form by ID
+export const getFormByIdOutputSchema = z.object({
+    title: z.string(),
+    description: z.string().nullable().optional(),
+});
+
+export type GetFormByIdOutputType = z.infer<typeof getFormByIdOutputSchema>;

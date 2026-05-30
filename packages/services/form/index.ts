@@ -1,7 +1,13 @@
-import { db } from "@repo/database";
+import { db, eq, and } from "@repo/database";
 import { formsTable } from "@repo/database/models/form";
 
-import { CreateFormInputType, createFormOutputSchema } from "./model";
+import { 
+    CreateFormInputType, 
+    createFormOutputSchema,
+    GetFormByIdInputType,
+    getFormByIdInputSchema,
+    getFormByIdOutputSchema
+} from "./model";
 
 class FormService {
     // Creates a new form record associated with the authenticated user
@@ -30,6 +36,30 @@ class FormService {
             ...createdForm,
             status: "draft",
         });
+    }
+
+    // Fetches a form by its ID, verifying it belongs to the requesting user
+    public async getFormById(payload: GetFormByIdInputType) {
+        const { formId, userId } = await getFormByIdInputSchema.parseAsync(payload);
+
+        const result = await db
+            .select({
+                title: formsTable.title,
+                description: formsTable.description,
+            })
+            .from(formsTable)
+            .where(
+                and(
+                    eq(formsTable.id, formId),
+                    eq(formsTable.createdBy, userId)
+                )
+            );
+
+        if (!result || result.length === 0 || !result[0]) {
+            throw new Error("Form not found or you do not have permission to view it");
+        }
+
+        return getFormByIdOutputSchema.parseAsync(result[0]);
     }
 }
 
