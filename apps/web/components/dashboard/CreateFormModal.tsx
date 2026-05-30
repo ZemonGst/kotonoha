@@ -49,28 +49,29 @@ export function CreateFormModal({ children }: { children: React.ReactNode }) {
             <DialogTrigger asChild>
                 {children}
             </DialogTrigger>
-            <DialogContent className="sm:max-w-[425px]">
+            <DialogContent className="sm:max-w-[425px] bg-[#0E0F1A] border-[rgba(255,255,255,0.07)] text-white">
                 <DialogHeader>
-                    <DialogTitle>Create new form</DialogTitle>
-                    <DialogDescription>
+                    <DialogTitle className="text-white">Create new form</DialogTitle>
+                    <DialogDescription className="text-[#8B8FA8]">
                         Give your form a title and an optional description to get started.
                     </DialogDescription>
                 </DialogHeader>
                 
                 <div className="grid gap-4 py-4">
                     <div className="grid gap-2">
-                        <label htmlFor="title" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
-                            Title <span className="text-destructive">*</span>
+                        <label htmlFor="title" className="text-sm font-medium leading-none text-[#8B8FA8]">
+                            Title <span className="text-[#D93025]">*</span>
                         </label>
                         <Input
                             id="title"
                             placeholder="e.g., Customer Feedback Survey"
                             value={title}
                             onChange={(e) => setTitle(e.target.value)}
+                            className="bg-[rgba(255,255,255,0.04)] border-[rgba(255,255,255,0.07)] text-white focus-visible:border-[#D93025] focus-visible:ring-1 focus-visible:ring-[#D93025]"
                         />
                     </div>
                     <div className="grid gap-2">
-                        <label htmlFor="description" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+                        <label htmlFor="description" className="text-sm font-medium leading-none text-[#8B8FA8]">
                             Description (Optional)
                         </label>
                         <Textarea
@@ -78,15 +79,16 @@ export function CreateFormModal({ children }: { children: React.ReactNode }) {
                             placeholder="Describe what this form is for..."
                             value={description}
                             onChange={(e) => setDescription(e.target.value)}
+                            className="bg-[rgba(255,255,255,0.04)] border-[rgba(255,255,255,0.07)] text-white focus-visible:border-[#D93025] focus-visible:ring-1 focus-visible:ring-[#D93025]"
                         />
                     </div>
                 </div>
                 
                 <DialogFooter>
-                    <Button variant="outline" onClick={() => setOpen(false)} disabled={isPending}>
+                    <Button variant="outline" onClick={() => setOpen(false)} disabled={isPending} className="border-[rgba(255,255,255,0.07)] text-[#8B8FA8] hover:bg-[rgba(255,255,255,0.04)] hover:text-white bg-transparent">
                         Cancel
                     </Button>
-                    <Button onClick={handleCreate} disabled={!title.trim() || isPending}>
+                    <Button onClick={handleCreate} disabled={!title.trim() || isPending} className="bg-[#D93025] text-white hover:bg-[#E8352A]">
                         {isPending ? "Creating..." : "Next"}
                     </Button>
                 </DialogFooter>
