@@ -103,3 +103,29 @@ export const useSignin = () => {
         status
     }
 }
+
+export const useRefreshAccessToken = () => {
+    const {
+        mutateAsync: refreshAccessTokenAsync,
+        mutate: refreshAccessToken,
+        error: error,
+        isError: isError,
+        failureCount: failureCount,
+        isIdle: isIdle,
+        isSuccess: isSuccess,
+        variables: variables,
+        status: status,
+    } = trpc.auth.refreshAccessToken.useMutation();
+
+    return {
+        refreshAccessTokenAsync,
+        refreshAccessToken,
+        error,
+        isError,
+        failureCount,
+        isIdle,
+        isSuccess,
+        variables,
+        status
+    }
+}
