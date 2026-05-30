@@ -353,3 +353,52 @@
   padding: 32px;
   background: var(--bg-page);
 }
+
+/* -----------------------------------------------------------------------
+   Builder Mode Overrides
+   ----------------------------------------------------------------------- */
+
+/* Make the main area take the full screen width */
+.is-builder-mode .dashboard-main {
+  margin-left: 0;
+}
+
+/* The content wrapper inside builder mode should fill the height exactly and not have padding/margins */
+.builder-content {
+  flex: 1;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background: var(--bg-page);
+}
+
+/* 
+  Hide the sidebar off-screen by default. 
+  It gets a high z-index and box-shadow to hover above the canvas when visible.
+*/
+.is-builder-mode .sidebar {
+  transform: translateX(-100%);
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 4px 0 24px rgba(0,0,0,0.5);
+  z-index: 100;
+}
+
+/* 
+  An invisible zone sitting on the far left edge of the screen. 
+  When the mouse hits this zone, it reveals the sidebar.
+*/
+.sidebar-hover-zone {
+  position: fixed;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 16px;
+  z-index: 90;
+}
+
+/* Trigger the sidebar to slide in when hovering the zone OR the sidebar itself */
+.is-builder-mode .sidebar-container:hover .sidebar {
+  transform: translateX(0);
+}
+
