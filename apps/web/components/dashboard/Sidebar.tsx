@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useGetMe } from "~/hooks/api/dashboard";
+import { CreateFormModal } from "./CreateFormModal";
 
 import {
     Plus,
@@ -60,6 +61,24 @@ export function Sidebar() {
             <nav className="sidebar-nav">
                 {navItems.map(({ label, href, icon: Icon }) => {
                     const isActive = pathname === href || pathname.startsWith(href + "/");
+                    const navItemElement = (
+                        <div
+                            key={href}
+                            className={`nav-item${isActive ? " active" : ""} cursor-pointer`}
+                        >
+                            <Icon className="nav-item-icon" size={16} />
+                            {label}
+                        </div>
+                    );
+
+                    if (href === "/dashboard/create") {
+                        return (
+                            <CreateFormModal key={href}>
+                                {navItemElement}
+                            </CreateFormModal>
+                        );
+                    }
+
                     return (
                         <Link
                             key={href}

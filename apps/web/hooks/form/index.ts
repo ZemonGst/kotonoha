@@ -1,3 +1,4 @@
+import { useCallback } from "react";
 import { trpc } from "~/trpc/client";
 import { trpcAuthRetry, useAuthErrorInterceptor } from "~/hooks/utils";
 
@@ -6,14 +7,16 @@ export const useCreateForm = () => {
         retry: trpcAuthRetry
     });
 
+    const refetch = useCallback(() => {
+        if (mutation.variables) {
+            mutation.mutate(mutation.variables);
+        }
+    }, [mutation.variables, mutation.mutate]);
+
     useAuthErrorInterceptor({
         isError: mutation.isError,
         error: mutation.error,
-        refetch: () => {
-            if (mutation.variables) {
-                mutation.mutate(mutation.variables);
-            }
-        }
+        refetch
     });
 
     return {
@@ -21,6 +24,7 @@ export const useCreateForm = () => {
         createForm: mutation.mutate,
         error: mutation.error,
         isError: mutation.isError,
+        isPending: mutation.isPending,
         failureCount: mutation.failureCount,
         isIdle: mutation.isIdle,
         isSuccess: mutation.isSuccess,
