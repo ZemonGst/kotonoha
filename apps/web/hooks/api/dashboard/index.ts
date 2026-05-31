@@ -1,6 +1,6 @@
 import { useRouter } from "next/navigation";
 import { trpc } from "~/trpc/client";
-import { trpcAuthRetry, useAuthErrorInterceptor } from "~/hooks/utils";
+import { trpcAuthRetry, useAuthErrorInterceptor } from "~/hooks/utils/auth-interceptor";
 
 export const useGetMe = () => {
     const {

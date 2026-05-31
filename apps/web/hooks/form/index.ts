@@ -1,6 +1,6 @@
 import { useCallback } from "react";
 import { trpc } from "~/trpc/client";
-import { trpcAuthRetry, useAuthErrorInterceptor } from "~/hooks/utils";
+import { trpcAuthRetry, useAuthErrorInterceptor } from "~/hooks/utils/auth-interceptor";
 
 export const useCreateForm = (options?: { onSuccess?: (data: any) => void }) => {
     const mutation = trpc.form.createForm.useMutation({
