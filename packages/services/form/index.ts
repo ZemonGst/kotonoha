@@ -1,4 +1,4 @@
-import { db, eq, and, asc } from "@repo/database";
+import { db, eq, and, asc, inArray, sql } from "@repo/database";
 import { formsTable } from "@repo/database/models/form";
 import { formFieldsTable } from "@repo/database/models/form-field";
 
@@ -18,10 +18,149 @@ import {
     updateFieldInputSchema,
     updateFieldOutputSchema,
     DeleteFieldInputType,
-    deleteFieldInputSchema
+    deleteFieldInputSchema,
+    SaveDeltaInputType,
+    saveDeltaInputSchema
 } from "./model";
 
 class FormService {
+    // Private helpers
+    
+    private async generateUniqueLabelKey(formId: string, label: string): Promise<string> {
+        let baseSlug = label
+            .toLowerCase()
+            .replace(/[^a-z0-9]+/g, '-')
+            .replace(/(^-|-$)/g, '');
+        
+        if (!baseSlug) {
+            baseSlug = "field";
+        }
+
+        let labelKey = baseSlug;
+        let counter = 1;
+        let isUnique = false;
+
+        while (!isUnique) {
+            const existingField = await db
+                .select({ id: formFieldsTable.id })
+                .from(formFieldsTable)
+                .where(
+                    and(
+                        eq(formFieldsTable.formId, formId),
+                        eq(formFieldsTable.labelKey, labelKey)
+                    )
+                );
+            
+            if (existingField.length === 0) {
+                isUnique = true;
+            } else {
+                labelKey = `${baseSlug}-${counter}`;
+                counter++;
+            }
+        }
+
+        return labelKey;
+    }
+
+    // Public functions
+
+    public async saveDelta(payload: SaveDeltaInputType) {
+        const validatedPayload = await saveDeltaInputSchema.parseAsync(payload);
+        const { formId, userId, newFields, updatedFields, deletedIds, meta } = validatedPayload;
+
+        // Verify form exists and belongs to userId
+        const formResult = await db
+            .select({ id: formsTable.id })
+            .from(formsTable)
+            .where(
+                and(
+                    eq(formsTable.id, formId),
+                    eq(formsTable.createdBy, userId)
+                )
+            );
+
+        if (!formResult || formResult.length === 0) {
+            throw new Error("Form not found or you do not have permission to modify it");
+        }
+
+        // UPDATE form title/description
+        if (meta && (meta.title !== undefined || meta.description !== undefined)) {
+            const updateSet: Record<string, any> = { updatedAt: new Date() };
+            if (meta.title !== undefined) updateSet.title = meta.title;
+            if (meta.description !== undefined) updateSet.description = meta.description;
+            
+            await db
+                .update(formsTable)
+                .set(updateSet)
+                .where(eq(formsTable.id, formId));
+        }
+
+        // INSERT new fields
+        if (newFields && newFields.length > 0) {
+            const valuesToInsert = [];
+            for (const field of newFields) {
+                const labelKey = await this.generateUniqueLabelKey(formId, field.label);
+                valuesToInsert.push({
+                    ...field,
+                    formId,
+                    labelKey,
+                    order: field.order.toString(),
+                });
+            }
+            await db.insert(formFieldsTable).values(valuesToInsert);
+        }
+
+        // UPDATE fields
+        if (updatedFields && updatedFields.length > 0) {
+            const updateSet: Record<string, any> = {};
+            const columnsToUpdate = ['type', 'label', 'description', 'placeholder', 'isRequired', 'order', 'config'] as const;
+
+            for (const col of columnsToUpdate) {
+                const hasUpdate = updatedFields.some(f => f[col as keyof typeof f] !== undefined);
+                if (hasUpdate) {
+                    let query = sql`(case `;
+                    for (const field of updatedFields) {
+                        if (field[col as keyof typeof field] !== undefined) {
+                            const val = col === 'order' ? field[col as keyof typeof field]?.toString() : field[col as keyof typeof field];
+                            
+                            // If value is a plain object/array, we should stringify it for JSONB columns, but Drizzle usually handles JSON mapping if we use parameters properly. 
+                            // However, using sql`` template literal means it passes values directly to pg driver as parameterized args, so json objects work fine.
+                            query = sql`${query} when ${formFieldsTable.id} = ${field.id} then ${val} `;
+                        }
+                    }
+                    query = sql`${query} else ${formFieldsTable[col as keyof typeof formFieldsTable]} end)`;
+                    updateSet[col] = query;
+                }
+            }
+
+            if (Object.keys(updateSet).length > 0) {
+                updateSet.updatedAt = new Date();
+                await db.update(formFieldsTable)
+                    .set(updateSet)
+                    .where(
+                        and(
+                            eq(formFieldsTable.formId, formId),
+                            inArray(formFieldsTable.id, updatedFields.map(f => f.id))
+                        )
+                    );
+            }
+        }
+
+        // DELETE fields
+        if (deletedIds && deletedIds.length > 0) {
+            await db
+                .delete(formFieldsTable)
+                .where(
+                    and(
+                        eq(formFieldsTable.formId, formId),
+                        inArray(formFieldsTable.id, deletedIds)
+                    )
+                );
+        }
+
+        return true;
+    }
+
     // Creates a new form record associated with the authenticated user
     public async createForm(userId: string, payload: CreateFormInputType) {
         const { title, description } = payload;
@@ -74,43 +213,6 @@ class FormService {
         return getFormByIdOutputSchema.parseAsync(result[0]);
     }
 
-    // Helper to generate a unique label key for a form
-    private async generateUniqueLabelKey(formId: string, label: string): Promise<string> {
-        let baseSlug = label
-            .toLowerCase()
-            .replace(/[^a-z0-9]+/g, '-')
-            .replace(/(^-|-$)/g, '');
-        
-        if (!baseSlug) {
-            baseSlug = "field";
-        }
-
-        let labelKey = baseSlug;
-        let counter = 1;
-        let isUnique = false;
-
-        while (!isUnique) {
-            const existingField = await db
-                .select({ id: formFieldsTable.id })
-                .from(formFieldsTable)
-                .where(
-                    and(
-                        eq(formFieldsTable.formId, formId),
-                        eq(formFieldsTable.labelKey, labelKey)
-                    )
-                );
-            
-            if (existingField.length === 0) {
-                isUnique = true;
-            } else {
-                labelKey = `${baseSlug}-${counter}`;
-                counter++;
-            }
-        }
-
-        return labelKey;
-    }
-
     public async createField(payload: CreateFieldInputType) {
         const validatedPayload = await createFieldInputSchema.parseAsync(payload);
         
@@ -147,6 +249,16 @@ class FormService {
 
     public async getFields(payload: GetFieldsInputType) {
         const { formId } = await getFieldsInputSchema.parseAsync(payload);
+
+        // First validate that the form exists
+        const formResult = await db
+            .select({ id: formsTable.id })
+            .from(formsTable)
+            .where(eq(formsTable.id, formId));
+
+        if (formResult.length === 0) {
+            throw new Error("Form not found");
+        }
 
         const fields = await db
             .select()

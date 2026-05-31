@@ -116,3 +116,21 @@ export const deleteFieldInputSchema = z.object({
 });
 
 export type DeleteFieldInputType = z.infer<typeof deleteFieldInputSchema>;
+
+export const saveDeltaInputSchema = z.object({
+    formId: z.string().uuid(),
+    userId: z.string().uuid(),
+    newFields: z.array(formFieldBaseSchema),
+    updatedFields: z.array(
+        formFieldBaseSchema.partial().extend({
+            id: z.string().uuid(),
+        })
+    ),
+    deletedIds: z.array(z.string().uuid()),
+    meta: z.object({
+        title: z.string().min(1).max(100).optional(),
+        description: z.string().max(500).optional(),
+    }).optional(),
+});
+
+export type SaveDeltaInputType = z.infer<typeof saveDeltaInputSchema>;
