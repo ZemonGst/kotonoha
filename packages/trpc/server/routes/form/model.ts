@@ -27,3 +27,80 @@ export const getFormByIdOutputSchema = z.object({
     title: z.string(),
     description: z.string().nullable().optional(),
 });
+
+export const formFieldTypes = [
+    "text",
+    "number",
+    "email",
+    "phone",
+    "textarea",
+    "select",
+    "yes_no",
+    "password",
+    "checkbox",
+    "radio",
+    "date",
+    "time",
+    "datetime",
+] as const;
+
+const formFieldBaseSchema = z.object({
+    type: z.enum(formFieldTypes).describe("Type of the field"),
+    label: z.string().min(1).max(100).describe("User-facing field title"),
+    description: z.string().nullable().optional().describe("Helper text below the label"),
+    placeholder: z.string().nullable().optional().describe("Temporary text inside the input"),
+    isRequired: z.boolean().default(false).describe("Whether the field must be completed"),
+    order: z.number().describe("Field position within the form"),
+    config: z.record(z.string(), z.unknown()).default({}).describe("Type-specific settings"),
+});
+
+const formFieldEntitySchema = formFieldBaseSchema.extend({
+    id: z.string().uuid(),
+    formId: z.string().uuid(),
+    labelKey: z.string().max(100),
+    createdAt: z.date(),
+    updatedAt: z.date(),
+});
+
+export const createFieldInputSchema = formFieldBaseSchema.extend({
+    formId: z.string().uuid().describe("ID of the form this field belongs to"),
+});
+
+export const createFieldOutputSchema = formFieldEntitySchema;
+
+export const getFieldsInputSchema = z.object({
+    formId: z.string().uuid(),
+});
+
+export const getFieldsOutputSchema = z.array(formFieldEntitySchema);
+
+export const updateFieldInputSchema = formFieldBaseSchema.partial().extend({
+    fieldId: z.string().uuid(),
+    formId: z.string().uuid(),
+});
+
+export const updateFieldOutputSchema = formFieldEntitySchema;
+
+export const deleteFieldInputSchema = z.object({
+    fieldId: z.string().uuid(),
+    formId: z.string().uuid(),
+});
+
+export const deleteFieldOutputSchema = z.boolean();
+
+export const saveDeltaInputSchema = z.object({
+    formId: z.string().uuid(),
+    newFields: z.array(formFieldBaseSchema),
+    updatedFields: z.array(
+        formFieldBaseSchema.partial().extend({
+            id: z.string().uuid(),
+        })
+    ),
+    deletedIds: z.array(z.string().uuid()),
+    meta: z.object({
+        title: z.string().min(1).max(100).optional(),
+        description: z.string().max(500).optional(),
+    }).optional(),
+});
+
+export const saveDeltaOutputSchema = z.boolean();

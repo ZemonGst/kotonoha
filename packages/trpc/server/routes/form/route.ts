@@ -8,6 +8,16 @@ import {
     createFormOutputSchema,
     getFormByIdInputSchema,
     getFormByIdOutputSchema,
+    createFieldInputSchema,
+    createFieldOutputSchema,
+    getFieldsInputSchema,
+    getFieldsOutputSchema,
+    updateFieldInputSchema,
+    updateFieldOutputSchema,
+    deleteFieldInputSchema,
+    deleteFieldOutputSchema,
+    saveDeltaInputSchema,
+    saveDeltaOutputSchema,
 } from "./model";
 
 const TAGS = ["Form"];
@@ -66,5 +76,63 @@ export const formRouter = router({
             });
             
             return form;
+        }),
+
+    // Create field
+    createField: protectedProcedure
+        .meta(postMeta("/createField", "Create a new field inside a form"))
+        .input(createFieldInputSchema)
+        .output(createFieldOutputSchema)
+        .mutation(async ({ input }) => {
+            // Note: formService.createField already checks form existence.
+            const field = await formService.createField(input);
+            return field;
+        }),
+
+    // Get fields
+    getFields: protectedProcedure
+        .meta(getMeta("/getFields", "Load all fields belonging to a form"))
+        .input(getFieldsInputSchema)
+        .output(getFieldsOutputSchema)
+        .query(async ({ input }) => {
+            const fields = await formService.getFields({ formId: input.formId });
+            return fields;
+        }),
+
+    // Update field
+    updateField: protectedProcedure
+        .meta(postMeta("/updateField", "Update editable field properties"))
+        .input(updateFieldInputSchema)
+        .output(updateFieldOutputSchema)
+        .mutation(async ({ input }) => {
+            const field = await formService.updateField(input);
+            return field;
+        }),
+
+    // Delete field
+    deleteField: protectedProcedure
+        .meta(postMeta("/deleteField", "Delete a field"))
+        .input(deleteFieldInputSchema)
+        .output(deleteFieldOutputSchema)
+        .mutation(async ({ input }) => {
+            await formService.deleteField(input);
+            return true;
+        }),
+
+    // Save delta
+    saveDelta: protectedProcedure
+        .meta(postMeta("/saveDelta", "Persist builder changes using delta updates"))
+        .input(saveDeltaInputSchema)
+        .output(saveDeltaOutputSchema)
+        .mutation(async ({ input, ctx }) => {
+            const { userId } = ctx;
+            
+            // Reconstruct the payload to pass userId which saveDelta requires
+            await formService.saveDelta({
+                ...input,
+                userId,
+            });
+            
+            return true;
         }),
 });
