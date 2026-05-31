@@ -49,3 +49,70 @@ export const getFormByIdOutputSchema = z.object({
 });
 
 export type GetFormByIdOutputType = z.infer<typeof getFormByIdOutputSchema>;
+
+export const formFieldTypes = [
+    "text",
+    "number",
+    "email",
+    "phone",
+    "textarea",
+    "select",
+    "yes_no",
+    "password",
+    "checkbox",
+    "radio",
+    "date",
+    "time",
+    "datetime",
+] as const;
+
+// Shared base schema for common form field properties
+const formFieldBaseSchema = z.object({
+    type: z.enum(formFieldTypes).describe("Type of the field"),
+    label: z.string().min(1).max(100).describe("User-facing field title"),
+    description: z.string().nullable().optional().describe("Helper text below the label"),
+    placeholder: z.string().nullable().optional().describe("Temporary text inside the input"),
+    isRequired: z.boolean().default(false).describe("Whether the field must be completed"),
+    order: z.number().describe("Field position within the form"),
+    config: z.record(z.string(), z.unknown()).default({}).describe("Type-specific settings"),
+});
+
+export const createFieldInputSchema = formFieldBaseSchema.extend({
+    formId: z.string().uuid().describe("ID of the form this field belongs to"),
+});
+
+export type CreateFieldInputType = z.infer<typeof createFieldInputSchema>;
+
+export const createFieldOutputSchema = formFieldBaseSchema.extend({
+    id: z.string().uuid(),
+    formId: z.string().uuid(),
+    labelKey: z.string().max(100),
+    createdAt: z.date(),
+    updatedAt: z.date(),
+});
+
+export type CreateFieldOutputType = z.infer<typeof createFieldOutputSchema>;
+
+export const updateFieldInputSchema = formFieldBaseSchema.partial().extend({
+    fieldId: z.string().uuid(),
+    formId: z.string().uuid(),
+});
+
+export type UpdateFieldInputType = z.infer<typeof updateFieldInputSchema>;
+
+export const updateFieldOutputSchema = createFieldOutputSchema;
+
+export const getFieldsInputSchema = z.object({
+    formId: z.string().uuid(),
+});
+
+export type GetFieldsInputType = z.infer<typeof getFieldsInputSchema>;
+
+export const getFieldsOutputSchema = z.array(createFieldOutputSchema);
+
+export const deleteFieldInputSchema = z.object({
+    fieldId: z.string().uuid(),
+    formId: z.string().uuid(),
+});
+
+export type DeleteFieldInputType = z.infer<typeof deleteFieldInputSchema>;
