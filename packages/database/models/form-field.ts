@@ -43,6 +43,7 @@ export const formFieldsTable = pgTable(
     type: formFieldType("type").notNull(),
 
     label: varchar("label", { length: 100 }).notNull(),
+    labelKey: varchar("label_key", { length: 100 }).notNull(),
 
     description: text("description"),
 

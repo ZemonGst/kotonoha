@@ -1,0 +1,1 @@
+ALTER TABLE "form_fields" ADD COLUMN "label_key" varchar(100) NOT NULL;
