@@ -59,7 +59,7 @@ function SidebarField({ type, label, icon: Icon }: any) {
 }
 
 function CanvasField({ field, isSelected, onSelect, onRemove }: any) {
-    const { attributes, listeners, setNodeRef, transform, transition, isDragging, isOver } = useSortable({
+    const { attributes, listeners, setNodeRef, setActivatorNodeRef, transform, transition, isDragging, isOver } = useSortable({
         id: field.id,
         data: { isCanvasField: true, field }
     });
@@ -71,6 +71,7 @@ function CanvasField({ field, isSelected, onSelect, onRemove }: any) {
         transform: CSS.Transform.toString(transform),
         transition,
         opacity: isDragging ? 0.5 : 1,
+        zIndex: isDragging ? 50 : 'auto',
     };
     
     const Icon = fieldTypes.find(f => f.type === field.type)?.icon || Type;
@@ -79,7 +80,6 @@ function CanvasField({ field, isSelected, onSelect, onRemove }: any) {
         <div 
             ref={setNodeRef} 
             style={style} 
-            {...attributes}
             className={`select-none relative group bg-[rgba(255,255,255,0.02)] border ${isSelected ? 'border-[#D93025]' : 'border-[rgba(255,255,255,0.07)]'} rounded-xl p-4 flex items-center gap-4 hover:border-[rgba(255,255,255,0.15)] transition-colors cursor-pointer`}
             onClick={(e) => {
                 e.stopPropagation();
@@ -92,6 +92,8 @@ function CanvasField({ field, isSelected, onSelect, onRemove }: any) {
                 </div>
             )}
             <div 
+                ref={setActivatorNodeRef}
+                {...attributes}
                 {...listeners} 
                 className="touch-none select-none cursor-grab active:cursor-grabbing text-[#4A4D65] hover:text-white px-1"
                 onClick={(e) => e.stopPropagation()}
@@ -262,12 +264,6 @@ export default function FormBuilderPage() {
     const handleDragEnd = (event: DragEndEvent) => {
         setActiveId(null);
         const { active, over } = event;
-        console.log('=== DRAG END ===');
-        console.log('active.id:', active.id);
-        console.log('active.data:', active.data.current);
-        console.log('over:', over);
-        console.log('over.id:', over?.id);
-        console.log('fields:', store.fields);
         
         if (!over) return;
         
@@ -475,7 +471,29 @@ export default function FormBuilderPage() {
                             </span>
                             <span className="select-none">{activeSidebarItem.label}</span>
                         </div>
-                    ) : null}
+                    ) : (() => {
+                        const activeCanvasField = activeId && !activeSidebarItem
+                            ? store.fields.find(f => f.id === activeId)
+                            : null;
+                        if (!activeCanvasField) return null;
+                        return (
+                            <div className="select-none cursor-grabbing bg-[#131422] border border-[rgba(255,255,255,0.15)] rounded-xl p-4 flex items-center gap-4 shadow-2xl opacity-90 w-[700px] ring-1 ring-[rgba(217,48,37,0.3)]">
+                                <div className="text-[#4A4D65] px-1"><GripVertical size={20} /></div>
+                                <div className="flex-1">
+                                    <div className="text-white font-medium mb-1">{activeCanvasField.label}</div>
+                                    <div className="text-[#8B8FA8] text-sm flex items-center gap-2">
+                                        <span className="capitalize">{activeCanvasField.type}</span>
+                                        {activeCanvasField.isRequired && (
+                                            <>
+                                                <span className="w-1 h-1 rounded-full bg-[rgba(255,255,255,0.2)]" />
+                                                <span className="text-[#D93025] font-medium">Required</span>
+                                            </>
+                                        )}
+                                    </div>
+                                </div>
+                            </div>
+                        );
+                    })()}
                 </DragOverlay>
             </SortableContext>
         </DndContext>
