@@ -28,7 +28,7 @@ interface FormBuilderState {
         existingFields: FormBuilderField[],
         saveFn: SaveDeltaFunction
     ) => void;
-    addField: (type: string, defaultLabel: string) => void;
+    addField: (type: string, defaultLabel: string, insertOrder?: number) => void;
     removeField: (fieldId: string) => void;
     selectField: (fieldId: string | null) => void;
     updateField: (fieldId: string, changes: Partial<FormFieldBase>) => void;
@@ -68,13 +68,13 @@ export const useFormBuilderStore = create<FormBuilderState>((set, get) => ({
         });
     },
 
-    addField: (type, defaultLabel) => {
+    addField: (type, defaultLabel, insertOrder) => {
         const { fields, tracker } = get();
         if (!tracker) return;
 
         const tempId = crypto.randomUUID();
         const lastField = fields[fields.length - 1];
-        const newOrder = lastField ? lastField.order + 1.0 : 1.0;
+        const newOrder = insertOrder !== undefined ? insertOrder : (lastField ? lastField.order + 1.0 : 1.0);
 
         const newField: FormBuilderField = {
             id: tempId,
@@ -95,7 +95,7 @@ export const useFormBuilderStore = create<FormBuilderState>((set, get) => ({
         });
 
         set({
-            fields: [...fields, newField],
+            fields: [...fields, newField].sort((a, b) => a.order - b.order),
             isDirty: true,
         });
     },
@@ -137,15 +137,14 @@ export const useFormBuilderStore = create<FormBuilderState>((set, get) => ({
 
     reorderField: (fieldId, newOrder) => {
         const { fields, tracker } = get();
-        if (!tracker) return;
-
+        
         const fieldToUpdate = fields.find((f) => f.id === fieldId);
         if (!fieldToUpdate) return;
 
-        tracker.trackUpdatedField(fieldId, { order: newOrder }, fieldToUpdate.isNew);
+        tracker?.trackUpdatedField(fieldId, { order: newOrder }, fieldToUpdate.isNew);
 
         set({
-            fields: fields.map((f) => (f.id === fieldId ? { ...f, order: newOrder } : f)),
+            fields: fields.map((f) => (f.id === fieldId ? { ...f, order: newOrder } : f)).sort((a, b) => a.order - b.order),
             isDirty: true,
         });
     },

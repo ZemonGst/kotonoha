@@ -132,7 +132,7 @@ function Canvas({ fields, selectedFieldId, onSelect, onRemove }: any) {
                             <p className="text-[#8B8FA8] mb-2">Drag and drop elements here to build your form</p>
                         </div>
                     ) : (
-                        <SortableContext items={sortedFields.map(f => f.id)} strategy={verticalListSortingStrategy}>
+                        <>
                             {sortedFields.map(field => (
                                 <CanvasField 
                                     key={field.id} 
@@ -142,7 +142,7 @@ function Canvas({ fields, selectedFieldId, onSelect, onRemove }: any) {
                                     onRemove={onRemove}
                                 />
                             ))}
-                        </SortableContext>
+                        </>
                     )}
                 </div>
             </div>
@@ -226,39 +226,81 @@ export default function FormBuilderPage() {
     const handleDragEnd = (event: DragEndEvent) => {
         setActiveId(null);
         const { active, over } = event;
+        console.log('=== DRAG END ===');
+        console.log('active.id:', active.id);
+        console.log('active.data:', active.data.current);
+        console.log('over:', over);
+        console.log('over.id:', over?.id);
+        console.log('fields:', store.fields);
+        
         if (!over) return;
         
         if (active.data.current?.isSidebarField) {
-            store.addField(active.data.current.type, active.data.current.label);
+            const sortedFields = [...store.fields].sort((a, b) => a.order - b.order);
+            const overIndex = sortedFields.findIndex(f => f.id === over.id);
+            
+            let insertOrder: number;
+            
+            if (overIndex === -1 || over.id === 'canvas') {
+                // Drop at end
+                const last = sortedFields[sortedFields.length - 1];
+                insertOrder = last ? last.order + 1.0 : 1.0;
+            } else if (overIndex === 0) {
+                // Drop at very top
+                insertOrder = sortedFields[0]!.order - 1.0;
+            } else {
+                // Drop between two fields
+                const prev = sortedFields[overIndex - 1];
+                const curr = sortedFields[overIndex];
+                insertOrder = (prev!.order + curr!.order) / 2.0;
+            }
+            
+            store.addField(
+                active.data.current.type,
+                active.data.current.label,
+                insertOrder
+            );
             return;
         }
 
         if (active.data.current?.isCanvasField && active.id !== over.id) {
             const sortedFields = [...store.fields].sort((a, b) => a.order - b.order);
             const activeIndex = sortedFields.findIndex(f => f.id === active.id);
+            const overIndex = sortedFields.findIndex(f => f.id === over.id);
             
+            if (over.id === "canvas" || overIndex === -1) {
+                const lastField = sortedFields[sortedFields.length - 1];
+                if (lastField && lastField.id !== active.id) {
+                    store.reorderField(active.id as string, lastField.order + 1.0);
+                }
+                return;
+            }
+
             if (activeIndex === -1) return;
 
-            let overIndex = sortedFields.findIndex(f => f.id === over.id);
-            if (over.id === "canvas") {
-                overIndex = sortedFields.length - 1;
-            }
+            // Use arrayMove to simulate the new order, then find neighbors!
+            const reordered = arrayMove(sortedFields, activeIndex, overIndex);
+            const newIndex = reordered.findIndex(f => f.id === active.id);
             
-            if (overIndex !== -1) {
-                const reordered = arrayMove(sortedFields, activeIndex, overIndex);
-                const newIndexInReordered = reordered.findIndex(f => f.id === active.id);
-                
-                let newOrder = 0;
-                if (newIndexInReordered === 0) {
-                    newOrder = reordered.length > 1 ? reordered[1]!.order - 1.0 : 1.0;
-                } else if (newIndexInReordered === reordered.length - 1) {
-                    newOrder = reordered[reordered.length - 2]!.order + 1.0;
-                } else {
-                    newOrder = (reordered[newIndexInReordered - 1]!.order + reordered[newIndexInReordered + 1]!.order) / 2.0;
-                }
-                
-                store.reorderField(active.id as string, newOrder);
+            const prevField = reordered[newIndex - 1];
+            const nextField = reordered[newIndex + 1];
+
+            let newOrder: number;
+
+            if (!prevField && nextField) {
+                // Moved to the very top
+                newOrder = nextField.order - 1.0;
+            } else if (!nextField && prevField) {
+                // Moved to the very bottom
+                newOrder = prevField.order + 1.0;
+            } else if (prevField && nextField) {
+                // Moved between two fields
+                newOrder = (prevField.order + nextField.order) / 2.0;
+            } else {
+                return;
             }
+
+            store.reorderField(active.id as string, newOrder);
         }
     };
 
@@ -268,7 +310,8 @@ export default function FormBuilderPage() {
 
     return (
         <DndContext sensors={sensors} onDragStart={handleDragStart} onDragEnd={handleDragEnd} collisionDetection={closestCenter}>
-            <div className="flex flex-col h-full w-full bg-[#080910]">
+            <SortableContext items={[...store.fields].sort((a, b) => a.order - b.order).map(f => f.id)} strategy={verticalListSortingStrategy}>
+                <div className="flex flex-col h-full w-full bg-[#080910]">
                 {/* Builder Topbar */}
                 <div className="builder-topbar border-b border-[rgba(255,255,255,0.07)] h-14 px-4 flex items-center justify-between bg-[#0E0F1A]">
                     <div className="flex items-center gap-4">
@@ -377,16 +420,17 @@ export default function FormBuilderPage() {
                     </div>
                 </div>
             </div>
-            <DragOverlay>
-                {activeSidebarItem ? (
-                    <div className="select-none cursor-grabbing flex items-center gap-3 p-2 rounded-md bg-[rgba(255,255,255,0.08)] text-sm text-white border border-[rgba(255,255,255,0.15)] shadow-xl w-60">
-                        <span className="select-none w-6 h-6 rounded bg-[rgba(255,255,255,0.05)] flex items-center justify-center">
-                            <activeSidebarItem.icon size={14} />
-                        </span>
-                        <span className="select-none">{activeSidebarItem.label}</span>
-                    </div>
-                ) : null}
-            </DragOverlay>
+                <DragOverlay>
+                    {activeSidebarItem ? (
+                        <div className="select-none cursor-grabbing flex items-center gap-3 p-2 rounded-md bg-[rgba(255,255,255,0.08)] text-sm text-white border border-[rgba(255,255,255,0.15)] shadow-xl w-60">
+                            <span className="select-none w-6 h-6 rounded bg-[rgba(255,255,255,0.05)] flex items-center justify-center">
+                                <activeSidebarItem.icon size={14} />
+                            </span>
+                            <span className="select-none">{activeSidebarItem.label}</span>
+                        </div>
+                    ) : null}
+                </DragOverlay>
+            </SortableContext>
         </DndContext>
     );
 }
