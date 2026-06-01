@@ -234,14 +234,19 @@ export class FormDeltaTracker {
         this._isDirty = false;
         this._isSaving = true;
 
+        console.log('[FormDeltaTracker] executeSave start', payload);
+
         this.savePromise = (async () => {
             try {
                 const result = await this.saveFn(payload);
+                console.log('[FormDeltaTracker] save success', result);
                 this._lastSavedAt = new Date();
                 if (result?.newIds && this.onSaveSuccess) {
+                    console.log('[FormDeltaTracker] received newIds', result.newIds);
                     this.onSaveSuccess(result.newIds);
                 }
             } catch (error) {
+                console.error('[FormDeltaTracker] save failed, restoring state', error);
                 // Restore the state so changes are not lost on failure
                 this.restoreFailedState(savedNewFieldsEntries, savedUpdatedFieldsEntries, savedDeletedIds, savedMeta);
                 throw error;
@@ -265,6 +270,7 @@ export class FormDeltaTracker {
         failedDeleted: string[],
         failedMeta: FormMeta
     ) {
+        console.log('[FormDeltaTracker] restoreFailedState executed');
         // Merge failed state back into the current state (prioritizing current state which might have newer changes)
         for (const [id, field] of failedNew) {
             if (!this._newFields.has(id)) {
