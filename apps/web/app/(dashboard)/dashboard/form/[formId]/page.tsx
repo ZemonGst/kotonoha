@@ -47,12 +47,12 @@ function SidebarField({ type, label, icon: Icon }: any) {
             ref={setNodeRef}
             {...attributes}
             {...listeners}
-            className={`flex items-center gap-3 p-2 rounded-md hover:bg-[rgba(255,255,255,0.04)] cursor-grab active:cursor-grabbing text-sm text-[#8B8FA8] hover:text-white transition-colors border border-transparent hover:border-[rgba(255,255,255,0.07)] ${isDragging ? 'opacity-50' : ''}`}
+            className={`select-none flex items-center gap-3 p-2 rounded-md hover:bg-[rgba(255,255,255,0.04)] cursor-grab active:cursor-grabbing text-sm text-[#8B8FA8] hover:text-white transition-colors border border-transparent hover:border-[rgba(255,255,255,0.07)] ${isDragging ? 'opacity-50' : ''}`}
         >
-            <span className="w-6 h-6 rounded bg-[rgba(255,255,255,0.05)] flex items-center justify-center">
+            <span className="select-none w-6 h-6 rounded bg-[rgba(255,255,255,0.05)] flex items-center justify-center">
                 <Icon size={14} />
             </span>
-            {label}
+            <span className="select-none">{label}</span>
         </div>
     );
 }
@@ -75,7 +75,7 @@ function CanvasField({ field, isSelected, onSelect, onRemove }: any) {
         <div 
             ref={setNodeRef} 
             style={style} 
-            className={`relative group bg-[rgba(255,255,255,0.02)] border ${isSelected ? 'border-[#D93025]' : 'border-[rgba(255,255,255,0.07)]'} rounded-xl p-4 flex items-center gap-4 hover:border-[rgba(255,255,255,0.15)] transition-colors cursor-pointer`}
+            className={`select-none relative group bg-[rgba(255,255,255,0.02)] border ${isSelected ? 'border-[#D93025]' : 'border-[rgba(255,255,255,0.07)]'} rounded-xl p-4 flex items-center gap-4 hover:border-[rgba(255,255,255,0.15)] transition-colors cursor-pointer`}
             onClick={(e) => {
                 e.stopPropagation();
                 onSelect(field.id);
@@ -84,19 +84,19 @@ function CanvasField({ field, isSelected, onSelect, onRemove }: any) {
             <div 
                 {...attributes} 
                 {...listeners} 
-                className="cursor-grab active:cursor-grabbing text-[#4A4D65] hover:text-white px-1"
+                className="select-none cursor-grab active:cursor-grabbing text-[#4A4D65] hover:text-white px-1"
             >
                 <GripVertical size={20} />
             </div>
             
-            <div className="w-8 h-8 rounded bg-[rgba(255,255,255,0.05)] flex items-center justify-center text-[#8B8FA8]">
+            <div className="select-none w-8 h-8 rounded bg-[rgba(255,255,255,0.05)] flex items-center justify-center text-[#8B8FA8]">
                 <Icon size={16} />
             </div>
             
-            <div className="flex-1">
-                <p className="text-white text-sm font-medium">{field.label}</p>
-                {field.description && <p className="text-[#8B8FA8] text-xs mt-1">{field.description}</p>}
-                {!field.description && <p className="text-[#4A4D65] text-xs mt-1 italic">No description</p>}
+            <div className="select-none flex-1">
+                <p className="select-none text-white text-sm font-medium">{field.label}</p>
+                {field.description && <p className="select-none text-[#8B8FA8] text-xs mt-1">{field.description}</p>}
+                {!field.description && <p className="select-none text-[#4A4D65] text-xs mt-1 italic">No description</p>}
             </div>
             
             <button 
@@ -104,7 +104,7 @@ function CanvasField({ field, isSelected, onSelect, onRemove }: any) {
                     e.stopPropagation();
                     onRemove(field.id);
                 }}
-                className="opacity-0 group-hover:opacity-100 p-2 text-[#8B8FA8] hover:text-[#D93025] transition-all"
+                className="select-none opacity-0 group-hover:opacity-100 p-2 text-[#8B8FA8] hover:text-[#D93025] transition-all"
             >
                 <Trash2 size={16} />
             </button>
@@ -379,11 +379,11 @@ export default function FormBuilderPage() {
             </div>
             <DragOverlay>
                 {activeSidebarItem ? (
-                    <div className="flex items-center gap-3 p-2 rounded-md bg-[rgba(255,255,255,0.08)] text-sm text-white border border-[rgba(255,255,255,0.15)] shadow-xl w-60">
-                        <span className="w-6 h-6 rounded bg-[rgba(255,255,255,0.05)] flex items-center justify-center">
+                    <div className="select-none cursor-grabbing flex items-center gap-3 p-2 rounded-md bg-[rgba(255,255,255,0.08)] text-sm text-white border border-[rgba(255,255,255,0.15)] shadow-xl w-60">
+                        <span className="select-none w-6 h-6 rounded bg-[rgba(255,255,255,0.05)] flex items-center justify-center">
                             <activeSidebarItem.icon size={14} />
                         </span>
-                        {activeSidebarItem.label}
+                        <span className="select-none">{activeSidebarItem.label}</span>
                     </div>
                 ) : null}
             </DragOverlay>
