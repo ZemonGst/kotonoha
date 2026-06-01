@@ -28,7 +28,7 @@ interface FormBuilderState {
         existingFields: FormBuilderField[],
         saveFn: SaveDeltaFunction
     ) => void;
-    addField: (type: string) => void;
+    addField: (type: string, defaultLabel: string) => void;
     removeField: (fieldId: string) => void;
     selectField: (fieldId: string | null) => void;
     updateField: (fieldId: string, changes: Partial<FormFieldBase>) => void;
@@ -68,7 +68,7 @@ export const useFormBuilderStore = create<FormBuilderState>((set, get) => ({
         });
     },
 
-    addField: (type) => {
+    addField: (type, defaultLabel) => {
         const { fields, tracker } = get();
         if (!tracker) return;
 
@@ -79,7 +79,7 @@ export const useFormBuilderStore = create<FormBuilderState>((set, get) => ({
         const newField: FormBuilderField = {
             id: tempId,
             type,
-            label: "New Field",
+            label: defaultLabel,
             isRequired: false,
             order: newOrder,
             config: {},

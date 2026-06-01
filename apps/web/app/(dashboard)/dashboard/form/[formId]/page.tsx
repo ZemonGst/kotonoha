@@ -47,7 +47,7 @@ function SidebarField({ type, label, icon: Icon }: any) {
             ref={setNodeRef}
             {...attributes}
             {...listeners}
-            className={`flex items-center gap-3 p-2 rounded-md hover:bg-[rgba(255,255,255,0.04)] cursor-grab text-sm text-[#8B8FA8] hover:text-white transition-colors border border-transparent hover:border-[rgba(255,255,255,0.07)] ${isDragging ? 'opacity-50' : ''}`}
+            className={`flex items-center gap-3 p-2 rounded-md hover:bg-[rgba(255,255,255,0.04)] cursor-grab active:cursor-grabbing text-sm text-[#8B8FA8] hover:text-white transition-colors border border-transparent hover:border-[rgba(255,255,255,0.07)] ${isDragging ? 'opacity-50' : ''}`}
         >
             <span className="w-6 h-6 rounded bg-[rgba(255,255,255,0.05)] flex items-center justify-center">
                 <Icon size={14} />
@@ -84,7 +84,7 @@ function CanvasField({ field, isSelected, onSelect, onRemove }: any) {
             <div 
                 {...attributes} 
                 {...listeners} 
-                className="cursor-grab text-[#4A4D65] hover:text-white px-1"
+                className="cursor-grab active:cursor-grabbing text-[#4A4D65] hover:text-white px-1"
             >
                 <GripVertical size={20} />
             </div>
@@ -229,7 +229,7 @@ export default function FormBuilderPage() {
         if (!over) return;
         
         if (active.data.current?.isSidebarField) {
-            store.addField(active.data.current.type);
+            store.addField(active.data.current.type, active.data.current.label);
             return;
         }
 
