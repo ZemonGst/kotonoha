@@ -66,6 +66,38 @@ export const useGetFormById = (formId: string) => {
     };
 };
 
+export const useGetFields = (formId: string) => {
+    const {
+        data: fields,
+        error,
+        isError,
+        isLoading,
+        isPending,
+        isSuccess,
+        status,
+        refetch,
+    } = trpc.form.getFields.useQuery(
+        { formId },
+        {
+            retry: trpcAuthRetry,
+            enabled: !!formId,
+        }
+    );
+
+    useAuthErrorInterceptor({ isError, error, refetch });
+
+    return {
+        fields,
+        error,
+        isError,
+        isLoading,
+        isPending,
+        isSuccess,
+        status,
+        refetch,
+    };
+};
+
 export const useCreateField = (options?: { onSuccess?: (data: any) => void }) => {
     const mutation = trpc.form.createField.useMutation({
         retry: trpcAuthRetry,
