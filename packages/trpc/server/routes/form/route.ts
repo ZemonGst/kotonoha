@@ -128,11 +128,11 @@ export const formRouter = router({
             const { userId } = ctx;
             
             // Reconstruct the payload to pass userId which saveDelta requires
-            await formService.saveDelta({
+            const result = await formService.saveDelta({
                 ...input,
                 userId,
             });
             
-            return true;
+            return result;
         }),
 });

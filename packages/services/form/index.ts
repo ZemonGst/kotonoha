@@ -26,7 +26,7 @@ import {
 class FormService {
     // Private helpers
     
-    private async generateUniqueLabelKey(formId: string, label: string): Promise<string> {
+    private async generateUniqueLabelKey(formId: string, label: string, generatedKeys?: Set<string>): Promise<string> {
         let baseSlug = label
             .toLowerCase()
             .replace(/[^a-z0-9]+/g, '-')
@@ -41,6 +41,12 @@ class FormService {
         let isUnique = false;
 
         while (!isUnique) {
+            if (generatedKeys?.has(labelKey)) {
+                labelKey = `${baseSlug}-${counter}`;
+                counter++;
+                continue;
+            }
+
             const existingField = await db
                 .select({ id: formFieldsTable.id })
                 .from(formFieldsTable)
@@ -64,7 +70,7 @@ class FormService {
 
     // Public functions
 
-    public async saveDelta(payload: SaveDeltaInputType) {
+    public async saveDelta(payload: SaveDeltaInputType): Promise<{ newIds: Record<string, string> }> {
         const validatedPayload = await saveDeltaInputSchema.parseAsync(payload);
         const { formId, userId, newFields, updatedFields, deletedIds, meta } = validatedPayload;
 
@@ -95,19 +101,16 @@ class FormService {
                 .where(eq(formsTable.id, formId));
         }
 
-        // INSERT new fields
-        if (newFields && newFields.length > 0) {
-            const valuesToInsert = [];
-            for (const field of newFields) {
-                const labelKey = await this.generateUniqueLabelKey(formId, field.label);
-                valuesToInsert.push({
-                    ...field,
-                    formId,
-                    labelKey,
-                    order: field.order.toString(),
-                });
-            }
-            await db.insert(formFieldsTable).values(valuesToInsert);
+        // DELETE fields
+        if (deletedIds && deletedIds.length > 0) {
+            await db
+                .delete(formFieldsTable)
+                .where(
+                    and(
+                        eq(formFieldsTable.formId, formId),
+                        inArray(formFieldsTable.id, deletedIds)
+                    )
+                );
         }
 
         // UPDATE fields
@@ -146,19 +149,37 @@ class FormService {
             }
         }
 
-        // DELETE fields
-        if (deletedIds && deletedIds.length > 0) {
-            await db
-                .delete(formFieldsTable)
-                .where(
-                    and(
-                        eq(formFieldsTable.formId, formId),
-                        inArray(formFieldsTable.id, deletedIds)
-                    )
-                );
+        // INSERT new fields
+        const idMapping: Record<string, string> = {};
+        if (newFields && newFields.length > 0) {
+            const valuesToInsert = [];
+            const generatedKeys = new Set<string>();
+            
+            for (const field of newFields) {
+                const labelKey = await this.generateUniqueLabelKey(formId, field.label, generatedKeys);
+                generatedKeys.add(labelKey);
+                // Strip tempId from insertion payload
+                const { tempId, ...fieldData } = field;
+                valuesToInsert.push({
+                    ...fieldData,
+                    formId,
+                    labelKey,
+                    order: fieldData.order.toString(),
+                });
+            }
+            const insertResult = await db.insert(formFieldsTable)
+                                        .values(valuesToInsert)
+                                        .returning({ id: formFieldsTable.id, order: formFieldsTable.order });
+            
+            for (const row of insertResult) {
+                const tempId = newFields.find(f => f.order.toString() === row.order)?.tempId;
+                if (tempId) {
+                    idMapping[tempId] = row.id;
+                }
+            }
         }
 
-        return true;
+        return { newIds: idMapping };
     }
 
     // Creates a new form record associated with the authenticated user

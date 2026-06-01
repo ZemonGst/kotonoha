@@ -36,6 +36,7 @@ interface FormBuilderState {
     updateMeta: (title: string, description: string) => void;
     markClean: () => void;
     setIsSaving: (value: boolean) => void;
+    updateNewIds: (newIds: Record<string, string>) => void;
 }
 
 export const useFormBuilderStore = create<FormBuilderState>((set, get) => ({
@@ -55,7 +56,9 @@ export const useFormBuilderStore = create<FormBuilderState>((set, get) => ({
             currentTracker.destroy();
         }
 
-        const newTracker = new FormDeltaTracker(formId, saveFn);
+        const newTracker = new FormDeltaTracker(formId, saveFn, 10000, (newIds) => {
+            get().updateNewIds(newIds);
+        });
 
         set({
             formId,
@@ -171,5 +174,19 @@ export const useFormBuilderStore = create<FormBuilderState>((set, get) => ({
 
     setIsSaving: (value) => {
         set({ isSaving: value });
+    },
+
+    updateNewIds: (newIds) => {
+        const { fields } = get();
+        set({
+            fields: fields.map(f => {
+                const realId = newIds[f.id];
+                if (f.isNew && realId) {
+                    return { ...f, id: realId, isNew: false };
+                }
+                return f;
+            }),
+            lastSavedAt: new Date(),
+        });
     },
 }));

@@ -17,13 +17,13 @@ export type FormMeta = {
 
 export type SaveDeltaPayload = {
     formId: string;
-    newFields: FormFieldBase[];
+    newFields: (FormFieldBase & { tempId: string })[];
     updatedFields: UpdatedField[];
     deletedIds: string[];
     meta?: FormMeta;
 };
 
-export type SaveDeltaFunction = (payload: SaveDeltaPayload) => Promise<any> | void;
+export type SaveDeltaFunction = (payload: SaveDeltaPayload) => Promise<{ newIds?: Record<string, string> }> | void;
 
 /**
  * Reusable form builder utility to track changes and prepare payloads for useSaveDelta.
@@ -33,6 +33,7 @@ export class FormDeltaTracker {
     private formId: string;
     private saveFn: SaveDeltaFunction;
     private debounceMs: number;
+    private onSaveSuccess?: (newIds: Record<string, string>) => void;
 
     // Track state changes
     private _newFields: Map<string, FormFieldBase> = new Map();
@@ -47,10 +48,16 @@ export class FormDeltaTracker {
     private _lastSavedAt: Date | null = null;
     private timerId: ReturnType<typeof setTimeout> | null = null;
 
-    constructor(formId: string, saveFn: SaveDeltaFunction, debounceMs = 10000) {
+    constructor(
+        formId: string, 
+        saveFn: SaveDeltaFunction, 
+        debounceMs = 10000,
+        onSaveSuccess?: (newIds: Record<string, string>) => void
+    ) {
         this.formId = formId;
         this.saveFn = saveFn;
         this.debounceMs = debounceMs;
+        this.onSaveSuccess = onSaveSuccess;
     }
 
     get isDirty() {
@@ -63,7 +70,7 @@ export class FormDeltaTracker {
 
     get pendingDelta(): Omit<SaveDeltaPayload, 'formId'> {
         return {
-            newFields: Array.from(this._newFields.values()),
+            newFields: Array.from(this._newFields.entries()).map(([tempId, field]) => ({ ...field, tempId })),
             updatedFields: Array.from(this._updatedFields.values()),
             deletedIds: Array.from(this._deletedIds),
             meta: Object.keys(this._meta).length > 0 ? this._meta : undefined,
@@ -201,7 +208,7 @@ export class FormDeltaTracker {
 
         const payload: SaveDeltaPayload = {
             formId: this.formId,
-            newFields: Array.from(this._newFields.values()),
+            newFields: Array.from(this._newFields.entries()).map(([tempId, field]) => ({ ...field, tempId })),
             updatedFields: Array.from(this._updatedFields.values()),
             deletedIds: Array.from(this._deletedIds),
         };
@@ -229,8 +236,11 @@ export class FormDeltaTracker {
 
         this.savePromise = (async () => {
             try {
-                await this.saveFn(payload);
+                const result = await this.saveFn(payload);
                 this._lastSavedAt = new Date();
+                if (result?.newIds && this.onSaveSuccess) {
+                    this.onSaveSuccess(result.newIds);
+                }
             } catch (error) {
                 // Restore the state so changes are not lost on failure
                 this.restoreFailedState(savedNewFieldsEntries, savedUpdatedFieldsEntries, savedDeletedIds, savedMeta);

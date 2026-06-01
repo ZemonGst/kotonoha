@@ -120,7 +120,9 @@ export type DeleteFieldInputType = z.infer<typeof deleteFieldInputSchema>;
 export const saveDeltaInputSchema = z.object({
     formId: z.string().uuid(),
     userId: z.string().uuid(),
-    newFields: z.array(formFieldBaseSchema),
+    newFields: z.array(formFieldBaseSchema.extend({
+        tempId: z.string().uuid(),
+    })),
     updatedFields: z.array(
         formFieldBaseSchema.partial().extend({
             id: z.string().uuid(),
@@ -134,3 +136,9 @@ export const saveDeltaInputSchema = z.object({
 });
 
 export type SaveDeltaInputType = z.infer<typeof saveDeltaInputSchema>;
+
+export const saveDeltaOutputSchema = z.object({
+    newIds: z.record(z.string().uuid(), z.string().uuid()).describe("Mapping of tempId to real database ID for newly created fields"),
+});
+
+export type SaveDeltaOutputType = z.infer<typeof saveDeltaOutputSchema>;

@@ -90,7 +90,9 @@ export const deleteFieldOutputSchema = z.boolean();
 
 export const saveDeltaInputSchema = z.object({
     formId: z.string().uuid(),
-    newFields: z.array(formFieldBaseSchema),
+    newFields: z.array(formFieldBaseSchema.extend({
+        tempId: z.string().uuid(),
+    })),
     updatedFields: z.array(
         formFieldBaseSchema.partial().extend({
             id: z.string().uuid(),
@@ -103,4 +105,6 @@ export const saveDeltaInputSchema = z.object({
     }).optional(),
 });
 
-export const saveDeltaOutputSchema = z.boolean();
+export const saveDeltaOutputSchema = z.object({
+    newIds: z.record(z.string().uuid(), z.string().uuid()).describe("Mapping of tempId to real database ID for newly created fields"),
+});

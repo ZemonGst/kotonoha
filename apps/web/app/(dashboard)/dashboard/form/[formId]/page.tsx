@@ -12,7 +12,8 @@ import { useGetFormById, useGetFields, useSaveDelta } from "~/hooks/form";
 import { useFormBuilderStore } from "~/stores/formBuilderStore";
 import { 
     DndContext, DragEndEvent, useDraggable, useDroppable, closestCenter, 
-    DragOverlay, useSensor, useSensors, PointerSensor, KeyboardSensor 
+    DragOverlay, useSensor, useSensors, PointerSensor, KeyboardSensor,
+    useDndContext
 } from "@dnd-kit/core";
 import { 
     SortableContext, useSortable, arrayMove, verticalListSortingStrategy, 
@@ -58,10 +59,13 @@ function SidebarField({ type, label, icon: Icon }: any) {
 }
 
 function CanvasField({ field, isSelected, onSelect, onRemove }: any) {
-    const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
+    const { attributes, listeners, setNodeRef, transform, transition, isDragging, isOver } = useSortable({
         id: field.id,
         data: { isCanvasField: true, field }
     });
+    
+    const { active } = useDndContext();
+    const isSidebarFieldDragging = active?.data?.current?.isSidebarField;
     
     const style = {
         transform: CSS.Transform.toString(transform),
@@ -75,16 +79,22 @@ function CanvasField({ field, isSelected, onSelect, onRemove }: any) {
         <div 
             ref={setNodeRef} 
             style={style} 
+            {...attributes}
             className={`select-none relative group bg-[rgba(255,255,255,0.02)] border ${isSelected ? 'border-[#D93025]' : 'border-[rgba(255,255,255,0.07)]'} rounded-xl p-4 flex items-center gap-4 hover:border-[rgba(255,255,255,0.15)] transition-colors cursor-pointer`}
             onClick={(e) => {
                 e.stopPropagation();
                 onSelect(field.id);
             }}
         >
+            {isOver && isSidebarFieldDragging && (
+                <div className="absolute -top-6 left-0 right-0 h-20 rounded-xl border-2 border-[#D93025] border-dashed bg-[#131422] z-20 pointer-events-none flex items-center justify-center opacity-95 shadow-[0_0_20px_rgba(217,48,37,0.15)]">
+                    <span className="text-[#D93025] font-medium text-sm tracking-wide">Drop to insert</span>
+                </div>
+            )}
             <div 
-                {...attributes} 
                 {...listeners} 
-                className="select-none cursor-grab active:cursor-grabbing text-[#4A4D65] hover:text-white px-1"
+                className="touch-none select-none cursor-grab active:cursor-grabbing text-[#4A4D65] hover:text-white px-1"
+                onClick={(e) => e.stopPropagation()}
             >
                 <GripVertical size={20} />
             </div>
@@ -113,9 +123,12 @@ function CanvasField({ field, isSelected, onSelect, onRemove }: any) {
 }
 
 function Canvas({ fields, selectedFieldId, onSelect, onRemove }: any) {
-    const { setNodeRef, isOver } = useDroppable({
+    const { setNodeRef, isOver, over } = useDroppable({
         id: "canvas",
     });
+
+    const { active } = useDndContext();
+    const isSidebarFieldDragging = active?.data?.current?.isSidebarField;
 
     const sortedFields = [...fields].sort((a, b) => a.order - b.order);
 
@@ -126,10 +139,16 @@ function Canvas({ fields, selectedFieldId, onSelect, onRemove }: any) {
             onClick={() => onSelect(null)}
         >
             <div className="w-full max-w-3xl flex flex-col gap-6">
-                <div className={`min-h-[400px] border-2 border-dashed rounded-xl p-8 flex flex-col gap-4 ${isOver ? 'border-[#D93025] bg-[rgba(217,48,37,0.02)]' : 'border-[rgba(255,255,255,0.07)] bg-[rgba(255,255,255,0.01)]'} transition-colors`}>
+                <div className={`min-h-[400px] border-2 border-dashed rounded-xl p-8 flex flex-col gap-4 ${isOver ? 'border-[#D93025] bg-[rgba(217,48,37,0.02)]' : 'border-[rgba(255,255,255,0.07)] bg-[rgba(255,255,255,0.01)]'} transition-colors relative`}>
                     {sortedFields.length === 0 ? (
-                        <div className="h-full flex flex-col items-center justify-center text-center py-20">
-                            <p className="text-[#8B8FA8] mb-2">Drag and drop elements here to build your form</p>
+                        <div className="h-full flex flex-col items-center justify-center text-center py-20 relative">
+                            {isSidebarFieldDragging && isOver ? (
+                                <div className="w-full max-w-md h-20 rounded-xl border-2 border-[#D93025] border-dashed bg-[#131422] flex items-center justify-center opacity-95 shadow-[0_0_20px_rgba(217,48,37,0.15)]">
+                                    <span className="text-[#D93025] font-medium text-sm tracking-wide">Drop to add first field</span>
+                                </div>
+                            ) : (
+                                <p className="text-[#8B8FA8] mb-2">Drag and drop elements here to build your form</p>
+                            )}
                         </div>
                     ) : (
                         <>
@@ -142,6 +161,12 @@ function Canvas({ fields, selectedFieldId, onSelect, onRemove }: any) {
                                     onRemove={onRemove}
                                 />
                             ))}
+                            {over?.id === 'canvas' && isSidebarFieldDragging && (
+                                <div className="absolute bottom-8 left-8 right-8 h-20 rounded-xl border-2 border-[#D93025] border-dashed bg-[#131422] z-20 pointer-events-none flex items-center justify-center opacity-95 shadow-[0_0_20px_rgba(217,48,37,0.15)]">
+                                    <span className="text-[#D93025] font-medium text-sm tracking-wide">Drop at end</span>
+                                </div>
+                            )}
+                            <div className="h-20 w-full" />
                         </>
                     )}
                 </div>
