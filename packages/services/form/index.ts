@@ -172,14 +172,18 @@ class FormService {
                                             .values(valuesToInsert)
                                             .returning({ id: formFieldsTable.id, order: formFieldsTable.order });
                 
+                console.log('[saveDelta] insertResult:', insertResult);
                 for (const row of insertResult) {
-                    const tempId = newFields.find(f => f.order.toString() === row.order)?.tempId;
+                    console.log(`[saveDelta] Mapping row.order (type: ${typeof row.order}, value: ${row.order})`);
+                    const tempId = newFields.find(f => f.order === Number(row.order))?.tempId;
                     if (tempId) {
                         idMapping[tempId] = row.id;
                     }
                 }
+                console.log('[saveDelta] generated idMapping:', idMapping);
             }
 
+            console.log('[saveDelta] returned newIds payload:', idMapping);
             return { newIds: idMapping };
         });
     }
