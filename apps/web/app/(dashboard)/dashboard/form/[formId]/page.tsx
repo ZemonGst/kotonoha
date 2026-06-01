@@ -353,7 +353,18 @@ export default function FormBuilderPage() {
                         />
                     </div>
                     <div className="flex items-center gap-2">
-                        {store.isDirty && <span className="text-xs text-[#8B8FA8] mr-2">Unsaved changes...</span>}
+                        <div className="flex items-center text-xs mr-2 transition-all">
+                            {store.isSaving ? (
+                                <span className="text-[#8B8FA8] flex items-center gap-1.5">
+                                    <Loader2 className="w-3 h-3 animate-spin" />
+                                    Saving...
+                                </span>
+                            ) : store.isDirty ? (
+                                <span className="text-[#8B8FA8]">Unsaved Changes</span>
+                            ) : store.lastSavedAt ? (
+                                <span className="text-emerald-500">Saved</span>
+                            ) : null}
+                        </div>
                         <button className="btn-secondary text-sm h-8 px-3" onClick={() => store.tracker?.forceSave()}>Save Draft</button>
                         <button className="btn-primary text-sm h-8 px-3" onClick={() => store.tracker?.forceSave()}>Publish</button>
                     </div>

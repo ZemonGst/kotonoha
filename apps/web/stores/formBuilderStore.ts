@@ -56,8 +56,23 @@ export const useFormBuilderStore = create<FormBuilderState>((set, get) => ({
             currentTracker.destroy();
         }
 
-        const newTracker = new FormDeltaTracker(formId, saveFn, 10000, (newIds) => {
+        const wrappedSaveFn: SaveDeltaFunction = async (payload) => {
+            get().setIsSaving(true);
+            try {
+                const res = await saveFn(payload);
+                return res || {};
+            } catch (error) {
+                get().setIsSaving(false);
+                throw error;
+            }
+        };
+
+        const newTracker = new FormDeltaTracker(formId, wrappedSaveFn, 10000, (newIds) => {
             get().updateNewIds(newIds);
+            get().setIsSaving(false);
+            if (!get().tracker?.isDirty) {
+                get().markClean();
+            }
         });
 
         set({
