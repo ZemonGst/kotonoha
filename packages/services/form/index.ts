@@ -26,7 +26,7 @@ import {
 class FormService {
     // Private helpers
     
-    private async generateUniqueLabelKey(formId: string, label: string, generatedKeys?: Set<string>): Promise<string> {
+    private async generateUniqueLabelKey(dbClient: any, formId: string, label: string, generatedKeys?: Set<string>): Promise<string> {
         let baseSlug = label
             .toLowerCase()
             .replace(/[^a-z0-9]+/g, '-')
@@ -47,7 +47,7 @@ class FormService {
                 continue;
             }
 
-            const existingField = await db
+            const existingField = await dbClient
                 .select({ id: formFieldsTable.id })
                 .from(formFieldsTable)
                 .where(
@@ -74,112 +74,114 @@ class FormService {
         const validatedPayload = await saveDeltaInputSchema.parseAsync(payload);
         const { formId, userId, newFields, updatedFields, deletedIds, meta } = validatedPayload;
 
-        // Verify form exists and belongs to userId
-        const formResult = await db
-            .select({ id: formsTable.id })
-            .from(formsTable)
-            .where(
-                and(
-                    eq(formsTable.id, formId),
-                    eq(formsTable.createdBy, userId)
-                )
-            );
-
-        if (!formResult || formResult.length === 0) {
-            throw new Error("Form not found or you do not have permission to modify it");
-        }
-
-        // UPDATE form title/description
-        if (meta && (meta.title !== undefined || meta.description !== undefined)) {
-            const updateSet: Record<string, any> = { updatedAt: new Date() };
-            if (meta.title !== undefined) updateSet.title = meta.title;
-            if (meta.description !== undefined) updateSet.description = meta.description;
-            
-            await db
-                .update(formsTable)
-                .set(updateSet)
-                .where(eq(formsTable.id, formId));
-        }
-
-        // DELETE fields
-        if (deletedIds && deletedIds.length > 0) {
-            await db
-                .delete(formFieldsTable)
+        return await db.transaction(async (tx) => {
+            // Verify form exists and belongs to userId
+            const formResult = await tx
+                .select({ id: formsTable.id })
+                .from(formsTable)
                 .where(
                     and(
-                        eq(formFieldsTable.formId, formId),
-                        inArray(formFieldsTable.id, deletedIds)
+                        eq(formsTable.id, formId),
+                        eq(formsTable.createdBy, userId)
                     )
                 );
-        }
 
-        // UPDATE fields
-        if (updatedFields && updatedFields.length > 0) {
-            const updateSet: Record<string, any> = {};
-            const columnsToUpdate = ['type', 'label', 'description', 'placeholder', 'isRequired', 'order', 'config'] as const;
-
-            for (const col of columnsToUpdate) {
-                const hasUpdate = updatedFields.some(f => f[col as keyof typeof f] !== undefined);
-                if (hasUpdate) {
-                    let query = sql`(case `;
-                    for (const field of updatedFields) {
-                        if (field[col as keyof typeof field] !== undefined) {
-                            const val = col === 'order' ? field[col as keyof typeof field]?.toString() : field[col as keyof typeof field];
-                            
-                            // If value is a plain object/array, we should stringify it for JSONB columns, but Drizzle usually handles JSON mapping if we use parameters properly. 
-                            // However, using sql`` template literal means it passes values directly to pg driver as parameterized args, so json objects work fine.
-                            query = sql`${query} when ${formFieldsTable.id} = ${field.id} then ${val} `;
-                        }
-                    }
-                    query = sql`${query} else ${formFieldsTable[col as keyof typeof formFieldsTable]} end)`;
-                    updateSet[col] = query;
-                }
+            if (!formResult || formResult.length === 0) {
+                throw new Error("Form not found or you do not have permission to modify it");
             }
 
-            if (Object.keys(updateSet).length > 0) {
-                updateSet.updatedAt = new Date();
-                await db.update(formFieldsTable)
+            // UPDATE form title/description
+            if (meta && (meta.title !== undefined || meta.description !== undefined)) {
+                const updateSet: Record<string, any> = { updatedAt: new Date() };
+                if (meta.title !== undefined) updateSet.title = meta.title;
+                if (meta.description !== undefined) updateSet.description = meta.description;
+                
+                await tx
+                    .update(formsTable)
                     .set(updateSet)
+                    .where(eq(formsTable.id, formId));
+            }
+
+            // DELETE fields
+            if (deletedIds && deletedIds.length > 0) {
+                await tx
+                    .delete(formFieldsTable)
                     .where(
                         and(
                             eq(formFieldsTable.formId, formId),
-                            inArray(formFieldsTable.id, updatedFields.map(f => f.id))
+                            inArray(formFieldsTable.id, deletedIds)
                         )
                     );
             }
-        }
 
-        // INSERT new fields
-        const idMapping: Record<string, string> = {};
-        if (newFields && newFields.length > 0) {
-            const valuesToInsert = [];
-            const generatedKeys = new Set<string>();
-            
-            for (const field of newFields) {
-                const labelKey = await this.generateUniqueLabelKey(formId, field.label, generatedKeys);
-                generatedKeys.add(labelKey);
-                // Strip tempId from insertion payload
-                const { tempId, ...fieldData } = field;
-                valuesToInsert.push({
-                    ...fieldData,
-                    formId,
-                    labelKey,
-                    order: fieldData.order.toString(),
-                });
-            }
-            const insertResult = await db.insert(formFieldsTable)
-                                        .values(valuesToInsert)
-                                        .returning({ id: formFieldsTable.id, order: formFieldsTable.order });
-            
-            for (const row of insertResult) {
-                const tempId = newFields.find(f => f.order.toString() === row.order)?.tempId;
-                if (tempId) {
-                    idMapping[tempId] = row.id;
+            // UPDATE fields
+            if (updatedFields && updatedFields.length > 0) {
+                const updateSet: Record<string, any> = {};
+                const columnsToUpdate = ['type', 'label', 'description', 'placeholder', 'isRequired', 'order', 'config'] as const;
+
+                for (const col of columnsToUpdate) {
+                    const hasUpdate = updatedFields.some(f => f[col as keyof typeof f] !== undefined);
+                    if (hasUpdate) {
+                        let query = sql`(case `;
+                        for (const field of updatedFields) {
+                            if (field[col as keyof typeof field] !== undefined) {
+                                const val = col === 'order' ? field[col as keyof typeof field]?.toString() : field[col as keyof typeof field];
+                                
+                                // If value is a plain object/array, we should stringify it for JSONB columns, but Drizzle usually handles JSON mapping if we use parameters properly. 
+                                // However, using sql`` template literal means it passes values directly to pg driver as parameterized args, so json objects work fine.
+                                query = sql`${query} when ${formFieldsTable.id} = ${field.id} then ${val} `;
+                            }
+                        }
+                        query = sql`${query} else ${formFieldsTable[col as keyof typeof formFieldsTable]} end)`;
+                        updateSet[col] = query;
+                    }
+                }
+
+                if (Object.keys(updateSet).length > 0) {
+                    updateSet.updatedAt = new Date();
+                    await tx.update(formFieldsTable)
+                        .set(updateSet)
+                        .where(
+                            and(
+                                eq(formFieldsTable.formId, formId),
+                                inArray(formFieldsTable.id, updatedFields.map(f => f.id))
+                            )
+                        );
                 }
             }
-        }
 
-        return { newIds: idMapping };
+            // INSERT new fields
+            const idMapping: Record<string, string> = {};
+            if (newFields && newFields.length > 0) {
+                const valuesToInsert = [];
+                const generatedKeys = new Set<string>();
+                
+                for (const field of newFields) {
+                    const labelKey = await this.generateUniqueLabelKey(tx, formId, field.label, generatedKeys);
+                    generatedKeys.add(labelKey);
+                    // Strip tempId from insertion payload
+                    const { tempId, ...fieldData } = field;
+                    valuesToInsert.push({
+                        ...fieldData,
+                        formId,
+                        labelKey,
+                        order: fieldData.order.toString(),
+                    });
+                }
+                const insertResult = await tx.insert(formFieldsTable)
+                                            .values(valuesToInsert)
+                                            .returning({ id: formFieldsTable.id, order: formFieldsTable.order });
+                
+                for (const row of insertResult) {
+                    const tempId = newFields.find(f => f.order.toString() === row.order)?.tempId;
+                    if (tempId) {
+                        idMapping[tempId] = row.id;
+                    }
+                }
+            }
+
+            return { newIds: idMapping };
+        });
     }
 
     // Creates a new form record associated with the authenticated user
@@ -247,7 +249,7 @@ class FormService {
             throw new Error("Form not found");
         }
 
-        const labelKey = await this.generateUniqueLabelKey(validatedPayload.formId, validatedPayload.label);
+        const labelKey = await this.generateUniqueLabelKey(db, validatedPayload.formId, validatedPayload.label);
 
         const insertResult = await db
             .insert(formFieldsTable)
