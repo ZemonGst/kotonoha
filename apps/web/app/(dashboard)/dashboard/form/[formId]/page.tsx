@@ -122,6 +122,22 @@ function CanvasField({ field, isSelected, onSelect, onRemove }: any) {
     );
 }
 
+function BottomDropZone() {
+    const { setNodeRef, isOver } = useDroppable({ id: "bottom-dropzone" });
+    const { active } = useDndContext();
+    const isSidebarFieldDragging = active?.data?.current?.isSidebarField;
+
+    return (
+        <div ref={setNodeRef} className="h-24 w-full relative shrink-0 mt-2">
+            {isOver && isSidebarFieldDragging && (
+                <div className="absolute inset-0 rounded-xl border-2 border-[#D93025] border-dashed bg-[#131422] z-20 pointer-events-none flex items-center justify-center opacity-95 shadow-[0_0_20px_rgba(217,48,37,0.15)]">
+                    <span className="text-[#D93025] font-medium text-sm tracking-wide">Drop at end</span>
+                </div>
+            )}
+        </div>
+    );
+}
+
 function Canvas({ fields, selectedFieldId, onSelect, onRemove }: any) {
     const { setNodeRef, isOver, over } = useDroppable({
         id: "canvas",
@@ -161,12 +177,7 @@ function Canvas({ fields, selectedFieldId, onSelect, onRemove }: any) {
                                     onRemove={onRemove}
                                 />
                             ))}
-                            {over?.id === 'canvas' && isSidebarFieldDragging && (
-                                <div className="absolute bottom-8 left-8 right-8 h-20 rounded-xl border-2 border-[#D93025] border-dashed bg-[#131422] z-20 pointer-events-none flex items-center justify-center opacity-95 shadow-[0_0_20px_rgba(217,48,37,0.15)]">
-                                    <span className="text-[#D93025] font-medium text-sm tracking-wide">Drop at end</span>
-                                </div>
-                            )}
-                            <div className="h-20 w-full" />
+                            <BottomDropZone />
                         </>
                     )}
                 </div>
@@ -266,7 +277,7 @@ export default function FormBuilderPage() {
             
             let insertOrder: number;
             
-            if (overIndex === -1 || over.id === 'canvas') {
+            if (overIndex === -1 || over.id === 'canvas' || over.id === 'bottom-dropzone') {
                 // Drop at end
                 const last = sortedFields[sortedFields.length - 1];
                 insertOrder = last ? last.order + 1.0 : 1.0;
@@ -293,7 +304,7 @@ export default function FormBuilderPage() {
             const activeIndex = sortedFields.findIndex(f => f.id === active.id);
             const overIndex = sortedFields.findIndex(f => f.id === over.id);
             
-            if (over.id === "canvas" || overIndex === -1) {
+            if (over.id === "canvas" || over.id === "bottom-dropzone" || overIndex === -1) {
                 const lastField = sortedFields[sortedFields.length - 1];
                 if (lastField && lastField.id !== active.id) {
                     store.reorderField(active.id as string, lastField.order + 1.0);
