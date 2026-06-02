@@ -14,7 +14,7 @@ export const createFormOutputSchema = formBaseSchema.extend({
     id: z.string().uuid()
         .describe("Unique identifier of the form"),
     
-    status: z.enum(["draft", "published", "archived"])
+    status: z.enum(["draft", "active", "archived"])
         .describe("Current status of the form"),
     
     createdBy: z.string().uuid()
@@ -49,6 +49,18 @@ export const getFormByIdOutputSchema = z.object({
 });
 
 export type GetFormByIdOutputType = z.infer<typeof getFormByIdOutputSchema>;
+
+export const updateFormStatusInputSchema = z.object({
+    formId: z.string().uuid().describe("Unique identifier of the form"),
+    userId: z.string().uuid().describe("ID of the user requesting the status update"),
+    status: z.enum(["draft", "active", "archived"]).describe("New status for the form"),
+});
+
+export type UpdateFormStatusInputType = z.infer<typeof updateFormStatusInputSchema>;
+
+export const updateFormStatusOutputSchema = createFormOutputSchema;
+
+export type UpdateFormStatusOutputType = z.infer<typeof updateFormStatusOutputSchema>;
 
 export const formFieldTypes = [
     "text",

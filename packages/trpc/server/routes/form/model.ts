@@ -9,7 +9,7 @@ const formBaseSchema = z.object({
 // Full form entity representation
 const formEntitySchema = formBaseSchema.extend({
     id: z.string().uuid().describe('Unique identifier of the form'),
-    status: z.enum(['draft', 'published', 'archived']).describe('Current status of the form'),
+    status: z.enum(['draft', 'active', 'archived']).describe('Current status of the form'),
     createdBy: z.string().uuid().describe('ID of the user who created the form'),
     createdAt: z.date().describe('When the form was created'),
     updatedAt: z.date().describe('When the form was last updated'),
@@ -27,6 +27,13 @@ export const getFormByIdOutputSchema = z.object({
     title: z.string(),
     description: z.string().nullable().optional(),
 });
+
+export const updateFormStatusInputSchema = z.object({
+    formId: z.string().uuid().describe('Unique identifier of the form'),
+    status: z.enum(['draft', 'active', 'archived']).describe('New status for the form'),
+});
+
+export const updateFormStatusOutputSchema = formEntitySchema;
 
 export const formFieldTypes = [
     "text",

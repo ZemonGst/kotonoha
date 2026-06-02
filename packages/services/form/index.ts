@@ -8,6 +8,9 @@ import {
     GetFormByIdInputType,
     getFormByIdInputSchema,
     getFormByIdOutputSchema,
+    UpdateFormStatusInputType,
+    updateFormStatusInputSchema,
+    updateFormStatusOutputSchema,
     CreateFieldInputType,
     createFieldInputSchema,
     createFieldOutputSchema,
@@ -238,6 +241,37 @@ class FormService {
         }
 
         return getFormByIdOutputSchema.parseAsync(result[0]);
+    }
+
+    public async updateFormStatus(payload: UpdateFormStatusInputType) {
+        const { formId, userId, status } = await updateFormStatusInputSchema.parseAsync(payload);
+
+        // Verify form exists and belongs to the user
+        const formResult = await db
+            .select({ id: formsTable.id })
+            .from(formsTable)
+            .where(
+                and(
+                    eq(formsTable.id, formId),
+                    eq(formsTable.createdBy, userId)
+                )
+            );
+
+        if (!formResult || formResult.length === 0) {
+            throw new Error("Form not found or you do not have permission to modify it");
+        }
+
+        const updateResult = await db
+            .update(formsTable)
+            .set({ status })
+            .where(eq(formsTable.id, formId))
+            .returning();
+
+        if (!updateResult || updateResult.length === 0 || !updateResult[0]) {
+            throw new Error("Something went wrong while updating the form status");
+        }
+
+        return updateFormStatusOutputSchema.parseAsync(updateResult[0]);
     }
 
     public async createField(payload: CreateFieldInputType) {
