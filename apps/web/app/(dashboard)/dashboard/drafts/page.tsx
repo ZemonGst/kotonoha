@@ -3,9 +3,9 @@
 import React from "react";
 import Link from "next/link";
 import { formatDistanceToNow } from "date-fns";
-import { FileEdit, MoreVertical, Send, Loader2, FileIcon, Trash2 } from "lucide-react";
+import { FileEdit, MoreVertical, Send, Loader2, FileIcon, Trash2, Archive } from "lucide-react";
 import { useGetAllForms } from "~/hooks/draft";
-import { useUpdateFormStatus } from "~/hooks/form";
+import { useUpdateFormStatus, useDeleteForm } from "~/hooks/form";
 import { 
     DropdownMenu, 
     DropdownMenuContent, 
@@ -18,6 +18,9 @@ export default function DraftsPage() {
     const { updateFormStatus, isPending } = useUpdateFormStatus({
         onSuccess: () => refetch()
     });
+    const { deleteForm, isPending: isDeletePending } = useDeleteForm({
+        onSuccess: () => refetch()
+    });
 
     const handlePublish = (formId: string) => {
         updateFormStatus({ formId, status: "active" });
@@ -25,6 +28,10 @@ export default function DraftsPage() {
 
     const handleArchive = (formId: string) => {
         updateFormStatus({ formId, status: "archived" });
+    };
+
+    const handleDelete = (formId: string) => {
+        deleteForm({ formId });
     };
 
     return (
@@ -70,9 +77,13 @@ export default function DraftsPage() {
                                                 <Send size={15} className="opacity-70" /> 
                                                 <span className="font-medium text-sm">Publish Form</span>
                                             </DropdownMenuItem>
-                                            <DropdownMenuItem onClick={(e) => { e.stopPropagation(); handleArchive(form.id); }} className="text-[#ff6b6b] focus:bg-[rgba(255,107,107,0.1)] focus:text-[#ff6b6b] rounded-lg cursor-pointer flex items-center gap-2.5 py-2 px-3 mt-1 transition-colors">
-                                                <Trash2 size={15} className="opacity-80" /> 
+                                            <DropdownMenuItem onClick={(e) => { e.stopPropagation(); handleArchive(form.id); }} className="text-[#A1A5B7] focus:bg-[rgba(255,255,255,0.06)] focus:text-white rounded-lg cursor-pointer flex items-center gap-2.5 py-2 px-3 mt-1 transition-colors">
+                                                <Archive size={15} className="opacity-80" /> 
                                                 <span className="font-medium text-sm">Archive Form</span>
+                                            </DropdownMenuItem>
+                                            <DropdownMenuItem onClick={(e) => { e.stopPropagation(); handleDelete(form.id); }} className="text-[#ff6b6b] focus:bg-[rgba(255,107,107,0.1)] focus:text-[#ff6b6b] rounded-lg cursor-pointer flex items-center gap-2.5 py-2 px-3 mt-1 transition-colors">
+                                                <Trash2 size={15} className="opacity-80" /> 
+                                                <span className="font-medium text-sm">Delete Form</span>
                                             </DropdownMenuItem>
                                         </DropdownMenuContent>
                                     </DropdownMenu>

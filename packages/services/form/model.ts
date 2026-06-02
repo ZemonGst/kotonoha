@@ -154,3 +154,10 @@ export const saveDeltaOutputSchema = z.object({
 });
 
 export type SaveDeltaOutputType = z.infer<typeof saveDeltaOutputSchema>;
+
+export const deleteFormInputSchema = z.object({
+    formId: z.string().uuid().describe("Unique identifier of the form"),
+    userId: z.string().uuid().describe("ID of the user requesting to delete the form"),
+});
+
+export type DeleteFormInputType = z.infer<typeof deleteFormInputSchema>;

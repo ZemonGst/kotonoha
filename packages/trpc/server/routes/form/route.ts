@@ -20,6 +20,8 @@ import {
     deleteFieldOutputSchema,
     saveDeltaInputSchema,
     saveDeltaOutputSchema,
+    deleteFormInputSchema,
+    deleteFormOutputSchema,
 } from "./model";
 
 const TAGS = ["Form"];
@@ -153,5 +155,21 @@ export const formRouter = router({
             });
             
             return result;
+        }),
+
+    // Delete form
+    deleteForm: protectedProcedure
+        .meta(postMeta("/deleteForm", "Delete a form"))
+        .input(deleteFormInputSchema)
+        .output(deleteFormOutputSchema)
+        .mutation(async ({ input, ctx }) => {
+            const { userId } = ctx;
+            
+            await formService.deleteForm({
+                formId: input.formId,
+                userId: userId,
+            });
+            
+            return true;
         }),
 });

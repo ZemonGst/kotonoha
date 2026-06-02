@@ -23,7 +23,9 @@ import {
     DeleteFieldInputType,
     deleteFieldInputSchema,
     SaveDeltaInputType,
-    saveDeltaInputSchema
+    saveDeltaInputSchema,
+    DeleteFormInputType,
+    deleteFormInputSchema
 } from "./model";
 
 class FormService {
@@ -415,6 +417,37 @@ class FormService {
         if (!deleteResult || deleteResult.length === 0 || !deleteResult[0]) {
             throw new Error("Field not found or already deleted");
         }
+
+        return true;
+    }
+
+    public async deleteForm(payload: DeleteFormInputType) {
+        const { formId, userId } = await deleteFormInputSchema.parseAsync(payload);
+
+        // First check if form exists and user owns it
+        const formResult = await db
+            .select({ id: formsTable.id })
+            .from(formsTable)
+            .where(
+                and(
+                    eq(formsTable.id, formId),
+                    eq(formsTable.createdBy, userId)
+                )
+            );
+
+        if (!formResult || formResult.length === 0) {
+            throw new Error("Form not found or you do not have permission to delete it");
+        }
+
+        // Delete all form fields first
+        await db
+            .delete(formFieldsTable)
+            .where(eq(formFieldsTable.formId, formId));
+
+        // Then delete the form
+        await db
+            .delete(formsTable)
+            .where(eq(formsTable.id, formId));
 
         return true;
     }

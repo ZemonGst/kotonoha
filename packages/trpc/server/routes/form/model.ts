@@ -115,3 +115,9 @@ export const saveDeltaInputSchema = z.object({
 export const saveDeltaOutputSchema = z.object({
     newIds: z.record(z.string().uuid(), z.string().uuid()).describe("Mapping of tempId to real database ID for newly created fields"),
 });
+
+export const deleteFormInputSchema = z.object({
+    formId: z.string().uuid().describe('Unique identifier of the form to delete'),
+});
+
+export const deleteFormOutputSchema = z.boolean();
