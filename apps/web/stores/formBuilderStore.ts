@@ -52,6 +52,12 @@ export const useFormBuilderStore = create<FormBuilderState>((set, get) => ({
 
     initStore: (formId, title, description, existingFields, saveFn) => {
         const currentTracker = get().tracker;
+        let currentSelectedFieldId = get().selectedFieldId;
+
+        if (get().formId !== formId) {
+            currentSelectedFieldId = null;
+        }
+
         if (currentTracker) {
             currentTracker.destroy();
         }
@@ -80,7 +86,7 @@ export const useFormBuilderStore = create<FormBuilderState>((set, get) => ({
             title,
             description: description || "",
             fields: existingFields,
-            selectedFieldId: null,
+            selectedFieldId: currentSelectedFieldId,
             isDirty: false,
             tracker: newTracker,
         });
@@ -192,7 +198,13 @@ export const useFormBuilderStore = create<FormBuilderState>((set, get) => ({
     },
 
     updateNewIds: (newIds) => {
-        const { fields } = get();
+        const { fields, selectedFieldId } = get();
+        let nextSelectedFieldId = selectedFieldId;
+        
+        if (selectedFieldId && newIds[selectedFieldId]) {
+            nextSelectedFieldId = newIds[selectedFieldId];
+        }
+
         set({
             fields: fields.map(f => {
                 const realId = newIds[f.id];
@@ -201,6 +213,7 @@ export const useFormBuilderStore = create<FormBuilderState>((set, get) => ({
                 }
                 return f;
             }),
+            selectedFieldId: nextSelectedFieldId,
             lastSavedAt: new Date(),
         });
     },
