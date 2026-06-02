@@ -31,8 +31,8 @@ export default function DraftsPage() {
         <div className="page-content" style={{ marginLeft: 0, marginTop: 0 }}>
             <div className="page-header">
                 <div className="page-header-left">
-                    <h1>Drafts</h1>
-                    <p>Forms that are currently a work in progress and not yet published.</p>
+                    <h1 className="text-white text-2xl font-bold tracking-tight">Drafts</h1>
+                    <p className="text-[#A1A5B7] mt-1">Forms that are currently a work in progress and not yet published.</p>
                 </div>
             </div>
 
@@ -47,40 +47,51 @@ export default function DraftsPage() {
                     <p>You don't have any drafts yet. Create a new form to get started.</p>
                 </div>
             ) : (
-                <div className="flex flex-col gap-2">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                     {forms.map(form => (
-                        <div key={form.id} className="table-row rounded-lg border border-[rgba(255,255,255,0.07)] bg-[#0E0F1A]">
-                            <div className="w-10 h-10 rounded-lg bg-[rgba(255,255,255,0.04)] flex items-center justify-center shrink-0">
-                                <FileEdit size={18} className="text-[#8B8FA8]" />
+                        <div 
+                            key={form.id} 
+                            className="group relative flex flex-col rounded-xl border border-[rgba(255,255,255,0.08)] bg-[#0C0D18] p-5 hover:bg-[#131422] hover:border-[rgba(255,255,255,0.15)] hover:shadow-[0_8px_30px_rgb(0,0,0,0.12)] transition-all duration-300"
+                        >
+                            <div className="flex items-start justify-between mb-4">
+                                <div className="w-10 h-10 rounded-lg bg-[rgba(255,255,255,0.05)] flex items-center justify-center shrink-0 group-hover:bg-[rgba(217,48,37,0.1)] transition-colors">
+                                    <FileEdit size={18} className="text-[#A1A5B7] group-hover:text-[#D93025] transition-colors" />
+                                </div>
+                                <div className="flex items-center gap-2">
+                                    <span className="bg-[rgba(255,255,255,0.06)] text-[#A1A5B7] text-[10px] font-semibold tracking-wider px-2.5 py-1 rounded-full uppercase border border-[rgba(255,255,255,0.05)]">Draft</span>
+                                    <DropdownMenu>
+                                        <DropdownMenuTrigger asChild>
+                                            <button className="w-8 h-8 flex items-center justify-center rounded-md hover:bg-[rgba(255,255,255,0.08)] text-[#A1A5B7] hover:text-white transition-colors disabled:opacity-50 relative z-10" disabled={isPending}>
+                                                <MoreVertical size={16} />
+                                            </button>
+                                        </DropdownMenuTrigger>
+                                        <DropdownMenuContent align="end" className="w-44 bg-[#131422] border-[rgba(255,255,255,0.1)] rounded-xl shadow-xl p-1">
+                                            <DropdownMenuItem onClick={(e) => { e.stopPropagation(); handlePublish(form.id); }} className="text-white focus:bg-[rgba(255,255,255,0.06)] rounded-lg cursor-pointer flex items-center gap-2.5 py-2 px-3 transition-colors">
+                                                <Send size={15} className="opacity-70" /> 
+                                                <span className="font-medium text-sm">Publish Form</span>
+                                            </DropdownMenuItem>
+                                            <DropdownMenuItem onClick={(e) => { e.stopPropagation(); handleArchive(form.id); }} className="text-[#ff6b6b] focus:bg-[rgba(255,107,107,0.1)] focus:text-[#ff6b6b] rounded-lg cursor-pointer flex items-center gap-2.5 py-2 px-3 mt-1 transition-colors">
+                                                <Trash2 size={15} className="opacity-80" /> 
+                                                <span className="font-medium text-sm">Archive Form</span>
+                                            </DropdownMenuItem>
+                                        </DropdownMenuContent>
+                                    </DropdownMenu>
+                                </div>
                             </div>
                             
-                            <div className="flex flex-col flex-1 min-w-0">
-                                <Link href={`/dashboard/form/${form.id}`} className="text-white font-medium truncate hover:text-[#D93025] transition-colors">
+                            <Link href={`/dashboard/form/${form.id}`} className="absolute inset-0 z-0" aria-label={`Edit ${form.title}`} />
+                            
+                            <div className="flex flex-col flex-1 relative z-0 pointer-events-none">
+                                <h3 className="text-base font-semibold text-white mb-2 line-clamp-1 group-hover:text-[#D93025] transition-colors">
                                     {form.title}
-                                </Link>
-                                <span className="text-xs text-[#8B8FA8] truncate mt-1">
-                                    Last updated {formatDistanceToNow(new Date(form.updatedAt))} ago
-                                </span>
-                            </div>
-
-                            <div className="shrink-0 flex items-center gap-4">
-                                <span className="badge badge-draft uppercase">Draft</span>
+                                </h3>
+                                <p className="text-sm text-[#A1A5B7] line-clamp-2 mb-5 flex-1 leading-relaxed">
+                                    {form.description || "No description provided."}
+                                </p>
                                 
-                                <DropdownMenu>
-                                    <DropdownMenuTrigger asChild>
-                                        <button className="w-8 h-8 flex items-center justify-center rounded hover:bg-[rgba(255,255,255,0.04)] text-[#8B8FA8] transition-colors disabled:opacity-50" disabled={isPending}>
-                                            <MoreVertical size={16} />
-                                        </button>
-                                    </DropdownMenuTrigger>
-                                    <DropdownMenuContent align="end" className="w-40 bg-[#0C0D18] border-[rgba(255,255,255,0.07)]">
-                                        <DropdownMenuItem onClick={() => handlePublish(form.id)} className="text-white focus:bg-[rgba(255,255,255,0.04)] cursor-pointer flex items-center gap-2">
-                                            <Send size={14} /> Publish Form
-                                        </DropdownMenuItem>
-                                        <DropdownMenuItem onClick={() => handleArchive(form.id)} className="text-[#D93025] focus:bg-[rgba(217,48,37,0.1)] focus:text-[#D93025] cursor-pointer flex items-center gap-2 mt-1">
-                                            <Trash2 size={14} /> Archive Form
-                                        </DropdownMenuItem>
-                                    </DropdownMenuContent>
-                                </DropdownMenu>
+                                <div className="mt-auto pt-4 border-t border-[rgba(255,255,255,0.06)] flex items-center justify-between text-xs font-medium text-[#8B8FA8]">
+                                    <span>Updated {formatDistanceToNow(new Date(form.updatedAt))} ago</span>
+                                </div>
                             </div>
                         </div>
                     ))}

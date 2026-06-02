@@ -6,7 +6,7 @@ import { useParams } from "next/navigation";
 import { 
     ArrowLeft, Loader2, AlertTriangle, Type, AlignLeft, Hash, Mail, 
     Phone, ChevronDown, Circle, CheckSquare, ToggleLeft, Calendar, 
-    Clock, CalendarClock, Lock, GripVertical, Trash2 
+    Clock, CalendarClock, Lock, GripVertical, Trash2, Settings
 } from "lucide-react";
 import { useGetFormById, useGetFields, useSaveDelta } from "~/hooks/form";
 import { useFormBuilderStore } from "~/stores/formBuilderStore";
@@ -484,7 +484,10 @@ export default function FormBuilderPage() {
                                 <span className="text-emerald-500">Saved</span>
                             ) : null}
                         </div>
-                        <button className="btn-secondary text-sm h-8 px-3" onClick={() => store.tracker?.forceSave()}>Save Draft</button>
+                        <Link href="/dashboard/drafts" className="btn-secondary text-sm h-8 px-4 mr-2 bg-[rgba(255,255,255,0.05)] border border-[rgba(255,255,255,0.15)] text-white hover:bg-[rgba(255,255,255,0.1)] transition-all flex items-center justify-center">
+                            Drafts
+                        </Link>
+                        <button className="btn-secondary text-sm h-8 px-3" onClick={() => store.tracker?.forceSave()}>Save</button>
                         <button className="btn-primary text-sm h-8 px-3" onClick={() => store.tracker?.forceSave()}>Publish</button>
                     </div>
                 </div>
@@ -535,24 +538,15 @@ export default function FormBuilderPage() {
                                 </TabsContent>
                             </Tabs>
                         ) : (
-                            <div className="flex-1 p-4 flex flex-col gap-4 overflow-y-auto">
-                                <div className="flex flex-col gap-2">
-                                    <label className="text-xs font-medium text-[#8B8FA8]">Form Title</label>
-                                    <input 
-                                        className="bg-[rgba(255,255,255,0.04)] border border-[rgba(255,255,255,0.07)] text-white rounded-md p-3 text-sm focus:outline-none focus:border-[#D93025] focus:ring-1 focus:ring-[#D93025] transition-all" 
-                                        placeholder="Title..." 
-                                        value={store.title}
-                                        onChange={(e) => store.updateMeta(e.target.value, store.description)}
-                                    />
+                            <div className="flex-1 p-4 flex flex-col items-center justify-center text-center gap-4 opacity-70">
+                                <div className="w-12 h-12 rounded-full bg-[rgba(255,255,255,0.04)] border border-[rgba(255,255,255,0.05)] flex items-center justify-center text-[#8B8FA8]">
+                                    <Settings size={20} />
                                 </div>
-                                <div className="flex flex-col gap-2">
-                                    <label className="text-xs font-medium text-[#8B8FA8]">Description</label>
-                                    <textarea 
-                                        className="bg-[rgba(255,255,255,0.04)] border border-[rgba(255,255,255,0.07)] text-white rounded-md p-3 text-sm h-24 resize-none focus:outline-none focus:border-[#D93025] focus:ring-1 focus:ring-[#D93025] transition-all" 
-                                        placeholder="Form description..." 
-                                        value={store.description || ""}
-                                        onChange={(e) => store.updateMeta(store.title, e.target.value)}
-                                    />
+                                <div>
+                                    <h4 className="text-sm font-medium text-white mb-1">No Field Selected</h4>
+                                    <p className="text-xs text-[#8B8FA8] max-w-[200px] leading-relaxed">
+                                        Select a field on the canvas to edit its settings
+                                    </p>
                                 </div>
                             </div>
                         )}
