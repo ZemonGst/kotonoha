@@ -20,6 +20,8 @@ import {
     sortableKeyboardCoordinates 
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "~/components/ui/tabs";
+import { BasicSettingsPanel, StylingPanel, FieldConfigDebug } from "~/components/form-builder/field-settings";
 
 const fieldTypes = [
     { type: "text", label: "Short Text", icon: Type },
@@ -76,11 +78,23 @@ function CanvasField({ field, isSelected, onSelect, onRemove }: any) {
     
     const Icon = fieldTypes.find(f => f.type === field.type)?.icon || Type;
 
+    const typography = field.config?.typography || {};
+    const appearance = field.config?.appearance || {};
+    
+    const customStyle: React.CSSProperties = {
+        fontFamily: typography.fontFamily,
+        fontSize: typography.fontSize ? `${typography.fontSize}px` : undefined,
+        fontWeight: typography.fontWeight,
+        fontStyle: typography.italic ? 'italic' : 'normal',
+        textDecoration: typography.underline ? 'underline' : 'none',
+        color: appearance.textColor || 'inherit',
+    };
+
     return (
         <div 
             ref={setNodeRef} 
             style={style} 
-            className={`select-none relative group bg-[rgba(255,255,255,0.02)] border ${isSelected ? 'border-[#D93025]' : 'border-[rgba(255,255,255,0.07)]'} rounded-xl p-4 flex items-center gap-4 hover:border-[rgba(255,255,255,0.15)] transition-colors cursor-pointer`}
+            className={`select-none relative group bg-[rgba(255,255,255,0.02)] border ${isSelected ? 'border-[#D93025]' : 'border-[rgba(255,255,255,0.07)]'} rounded-xl p-4 flex gap-4 hover:border-[rgba(255,255,255,0.15)] transition-colors cursor-pointer`}
             onClick={(e) => {
                 e.stopPropagation();
                 onSelect(field.id);
@@ -95,20 +109,46 @@ function CanvasField({ field, isSelected, onSelect, onRemove }: any) {
                 ref={setActivatorNodeRef}
                 {...attributes}
                 {...listeners} 
-                className="touch-none select-none cursor-grab active:cursor-grabbing text-[#4A4D65] hover:text-white px-1"
+                className="touch-none select-none cursor-grab active:cursor-grabbing text-[#4A4D65] hover:text-white px-1 mt-2"
                 onClick={(e) => e.stopPropagation()}
             >
                 <GripVertical size={20} />
             </div>
             
-            <div className="select-none w-8 h-8 rounded bg-[rgba(255,255,255,0.05)] flex items-center justify-center text-[#8B8FA8]">
-                <Icon size={16} />
-            </div>
-            
-            <div className="select-none flex-1">
-                <p className="select-none text-white text-sm font-medium">{field.label}</p>
-                {field.description && <p className="select-none text-[#8B8FA8] text-xs mt-1">{field.description}</p>}
-                {!field.description && <p className="select-none text-[#4A4D65] text-xs mt-1 italic">No description</p>}
+            <div className="select-none flex-1 flex flex-col gap-3">
+                <div className="flex flex-col">
+                    <div className="flex items-center gap-2">
+                        <div className="select-none w-5 h-5 rounded bg-[rgba(255,255,255,0.05)] flex items-center justify-center text-[#8B8FA8]">
+                            <Icon size={12} />
+                        </div>
+                        <p className="select-none text-white text-sm font-medium flex items-center gap-1">
+                            {field.label}
+                            {field.isRequired && <span className="text-[#D93025]">*</span>}
+                        </p>
+                    </div>
+                    {field.description && <p className="select-none text-[#8B8FA8] text-xs mt-1.5 ml-7">{field.description}</p>}
+                </div>
+                
+                <div className="ml-7">
+                    {field.type === 'textarea' ? (
+                        <textarea 
+                            className="w-full bg-[rgba(255,255,255,0.04)] border border-[rgba(255,255,255,0.07)] rounded-md p-3 focus:outline-none pointer-events-none resize-none h-20"
+                            placeholder={field.placeholder || "Placeholder..."}
+                            style={customStyle}
+                            readOnly
+                            tabIndex={-1}
+                        />
+                    ) : (
+                        <input 
+                            type="text"
+                            className="w-full bg-[rgba(255,255,255,0.04)] border border-[rgba(255,255,255,0.07)] rounded-md p-3 focus:outline-none pointer-events-none"
+                            placeholder={field.placeholder || "Placeholder..."}
+                            style={customStyle}
+                            readOnly
+                            tabIndex={-1}
+                        />
+                    )}
+                </div>
             </div>
             
             <button 
@@ -408,36 +448,20 @@ export default function FormBuilderPage() {
                         </div>
                         
                         {selectedField ? (
-                            <div className="flex-1 p-4 flex flex-col gap-4 overflow-y-auto">
-                                <div className="flex flex-col gap-2">
-                                    <label className="text-xs font-medium text-[#8B8FA8]">Field Label</label>
-                                    <input 
-                                        className="bg-[rgba(255,255,255,0.04)] border border-[rgba(255,255,255,0.07)] text-white rounded-md p-3 text-sm focus:outline-none focus:border-[#D93025] focus:ring-1 focus:ring-[#D93025] transition-all" 
-                                        placeholder="Label..." 
-                                        value={selectedField.label}
-                                        onChange={(e) => store.updateField(selectedField.id, { label: e.target.value })}
-                                    />
+                            <Tabs defaultValue="settings" className="flex-1 flex flex-col w-full overflow-hidden mt-2">
+                                <div className="px-4">
+                                    <TabsList className="w-full bg-[rgba(255,255,255,0.04)] p-1 rounded-md grid grid-cols-2">
+                                        <TabsTrigger value="settings" className="text-xs data-[state=active]:bg-[#1A1B2D] data-[state=active]:text-white text-[#8B8FA8] rounded">Settings</TabsTrigger>
+                                        <TabsTrigger value="styling" className="text-xs data-[state=active]:bg-[#1A1B2D] data-[state=active]:text-white text-[#8B8FA8] rounded">Styling</TabsTrigger>
+                                    </TabsList>
                                 </div>
-                                <div className="flex flex-col gap-2">
-                                    <label className="text-xs font-medium text-[#8B8FA8]">Description</label>
-                                    <textarea 
-                                        className="bg-[rgba(255,255,255,0.04)] border border-[rgba(255,255,255,0.07)] text-white rounded-md p-3 text-sm h-24 resize-none focus:outline-none focus:border-[#D93025] focus:ring-1 focus:ring-[#D93025] transition-all" 
-                                        placeholder="Field description..." 
-                                        value={selectedField.description || ""}
-                                        onChange={(e) => store.updateField(selectedField.id, { description: e.target.value })}
-                                    />
-                                </div>
-                                <div className="flex items-center gap-2 mt-2">
-                                    <input 
-                                        type="checkbox" 
-                                        id="isRequired"
-                                        checked={selectedField.isRequired || false}
-                                        onChange={(e) => store.updateField(selectedField.id, { isRequired: e.target.checked })}
-                                        className="rounded border-[rgba(255,255,255,0.07)] bg-[rgba(255,255,255,0.04)] text-[#D93025]"
-                                    />
-                                    <label htmlFor="isRequired" className="text-sm text-[#8B8FA8]">Required field</label>
-                                </div>
-                            </div>
+                                <TabsContent value="settings" className="flex-1 flex flex-col m-0 outline-none overflow-hidden data-[state=active]:flex data-[state=inactive]:hidden">
+                                    <BasicSettingsPanel selectedField={selectedField} />
+                                </TabsContent>
+                                <TabsContent value="styling" className="flex-1 flex flex-col m-0 outline-none overflow-hidden data-[state=active]:flex data-[state=inactive]:hidden">
+                                    <StylingPanel selectedField={selectedField} />
+                                </TabsContent>
+                            </Tabs>
                         ) : (
                             <div className="flex-1 p-4 flex flex-col gap-4 overflow-y-auto">
                                 <div className="flex flex-col gap-2">
@@ -460,6 +484,7 @@ export default function FormBuilderPage() {
                                 </div>
                             </div>
                         )}
+                        {selectedField && <FieldConfigDebug selectedField={selectedField} />}
                     </div>
                 </div>
             </div>
