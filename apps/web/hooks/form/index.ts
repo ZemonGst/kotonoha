@@ -248,3 +248,35 @@ export const useSaveDelta = (options?: { onSuccess?: (data: any) => void }) => {
         status: mutation.status,
     };
 };
+
+export const useUpdateFormStatus = (options?: { onSuccess?: (data: any) => void }) => {
+    const mutation = trpc.form.updateFormStatus.useMutation({
+        retry: trpcAuthRetry,
+        onSuccess: options?.onSuccess,
+    });
+
+    const refetch = useCallback(() => {
+        if (mutation.variables) {
+            mutation.mutate(mutation.variables);
+        }
+    }, [mutation.variables, mutation.mutate]);
+
+    useAuthErrorInterceptor({
+        isError: mutation.isError,
+        error: mutation.error,
+        refetch
+    });
+
+    return {
+        updateFormStatusAsync: mutation.mutateAsync,
+        updateFormStatus: mutation.mutate,
+        error: mutation.error,
+        isError: mutation.isError,
+        isPending: mutation.isPending,
+        failureCount: mutation.failureCount,
+        isIdle: mutation.isIdle,
+        isSuccess: mutation.isSuccess,
+        variables: mutation.variables,
+        status: mutation.status,
+    };
+};
