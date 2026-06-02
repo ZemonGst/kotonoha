@@ -21,7 +21,7 @@ import {
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "~/components/ui/tabs";
-import { BasicSettingsPanel, StylingPanel, FieldConfigDebug } from "~/components/form-builder/field-settings";
+import { SettingsTab, StylingTab, FieldConfigDebug } from "~/components/form-builder/field-settings";
 
 const fieldTypes = [
     { type: "text", label: "Short Text", icon: Type },
@@ -158,9 +158,61 @@ function CanvasField({ field, isSelected, onSelect, onRemove }: any) {
                             readOnly
                             tabIndex={-1}
                         />
+                    ) : field.type === 'select' ? (
+                        <div 
+                            className={`w-full bg-[rgba(255,255,255,0.04)] border border-[rgba(255,255,255,0.07)] rounded-md p-3 focus:outline-none pointer-events-none flex justify-between items-center preview-input-${field.id}`}
+                            style={inputStyle}
+                        >
+                            <span className="opacity-70">{field.placeholder || "Select option..."}</span>
+                            <ChevronDown size={16} className="opacity-50" />
+                        </div>
+                    ) : field.type === 'radio' ? (
+                        <div className={`flex ${field.config?.layout === 'horizontal' ? 'flex-row gap-6' : 'flex-col gap-3'} pointer-events-none`}>
+                            {field.config?.options?.length ? field.config.options.map((opt: any) => (
+                                <div key={opt.id} className="flex items-center gap-2">
+                                    <div className="w-4 h-4 rounded-full border border-[rgba(255,255,255,0.3)]" />
+                                    <span style={inputStyle}>{opt.label}</span>
+                                </div>
+                            )) : (
+                                <div className="flex items-center gap-2">
+                                    <div className="w-4 h-4 rounded-full border border-[rgba(255,255,255,0.3)]" />
+                                    <span style={inputStyle}>Option 1</span>
+                                </div>
+                            )}
+                        </div>
+                    ) : field.type === 'checkbox_group' ? (
+                        <div className="flex flex-col gap-3 pointer-events-none">
+                            {field.config?.options?.length ? field.config.options.map((opt: any) => (
+                                <div key={opt.id} className="flex items-center gap-2">
+                                    <div className="w-4 h-4 rounded border border-[rgba(255,255,255,0.3)]" />
+                                    <span style={inputStyle}>{opt.label}</span>
+                                </div>
+                            )) : (
+                                <div className="flex items-center gap-2">
+                                    <div className="w-4 h-4 rounded border border-[rgba(255,255,255,0.3)]" />
+                                    <span style={inputStyle}>Option 1</span>
+                                </div>
+                            )}
+                        </div>
+                    ) : field.type === 'checkbox' ? (
+                        <div className="flex items-center gap-2 pointer-events-none">
+                            <div className={`w-4 h-4 rounded border ${field.config?.validation?.defaultValue ? 'border-[#D93025] bg-[#D93025]' : 'border-[rgba(255,255,255,0.3)]'}`} />
+                            <span style={inputStyle}>{field.placeholder || "Check me"}</span>
+                        </div>
+                    ) : field.type === 'yes_no' ? (
+                        <div className={`flex ${field.config?.layout === 'horizontal' ? 'flex-row gap-4' : 'flex-col gap-2'} pointer-events-none`}>
+                            <div className="px-4 py-2 rounded-md border border-[rgba(255,255,255,0.1)] bg-[rgba(255,255,255,0.02)] flex items-center gap-2">
+                                <div className="w-4 h-4 rounded-full border border-[rgba(255,255,255,0.3)]" />
+                                <span style={inputStyle}>{field.config?.yesLabel || "Yes"}</span>
+                            </div>
+                            <div className="px-4 py-2 rounded-md border border-[rgba(255,255,255,0.1)] bg-[rgba(255,255,255,0.02)] flex items-center gap-2">
+                                <div className="w-4 h-4 rounded-full border border-[rgba(255,255,255,0.3)]" />
+                                <span style={inputStyle}>{field.config?.noLabel || "No"}</span>
+                            </div>
+                        </div>
                     ) : (
                         <input 
-                            type="text"
+                            type={field.type === 'password' ? 'password' : 'text'}
                             className={`w-full bg-[rgba(255,255,255,0.04)] border border-[rgba(255,255,255,0.07)] rounded-md p-3 focus:outline-none pointer-events-none preview-input-${field.id}`}
                             placeholder={field.placeholder || "Placeholder..."}
                             style={inputStyle}
@@ -476,10 +528,10 @@ export default function FormBuilderPage() {
                                     </TabsList>
                                 </div>
                                 <TabsContent value="settings" className="flex-1 flex flex-col m-0 outline-none overflow-hidden data-[state=active]:flex data-[state=inactive]:hidden">
-                                    <BasicSettingsPanel selectedField={selectedField} />
+                                    <SettingsTab selectedField={selectedField} />
                                 </TabsContent>
                                 <TabsContent value="styling" className="flex-1 flex flex-col m-0 outline-none overflow-hidden data-[state=active]:flex data-[state=inactive]:hidden">
-                                    <StylingPanel selectedField={selectedField} />
+                                    <StylingTab selectedField={selectedField} />
                                 </TabsContent>
                             </Tabs>
                         ) : (
