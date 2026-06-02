@@ -116,8 +116,29 @@
   * {
     @apply border-border outline-ring/50;
   }
+  
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground cursor-default;
+  }
+
+  /* Labels, headings, and non-editable content -> default cursor */
+  h1, h2, h3, h4, h5, h6, p, label {
+    @apply cursor-default;
+  }
+
+  /* Buttons, links, and summaries -> pointer cursor, prevent text selection */
+  button, a, [role="button"], summary {
+    @apply cursor-pointer select-none;
+  }
+
+  /* Text inputs -> text cursor, text selection enabled */
+  input, textarea, [contenteditable="true"] {
+    @apply cursor-text select-text;
+  }
+
+  /* Prevent blinking text caret on all non-input elements even if they receive focus */
+  *:not(input):not(textarea):not([contenteditable="true"]) {
+    caret-color: transparent;
   }
 }
 
