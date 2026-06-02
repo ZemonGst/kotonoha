@@ -43,6 +43,13 @@
       "when": 1780228501020,
       "tag": "0005_famous_old_lace",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1780412181393,
+      "tag": "0006_brainy_miss_america",
+      "breakpoints": true
     }
   ]
 }
