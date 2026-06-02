@@ -78,17 +78,27 @@ function CanvasField({ field, isSelected, onSelect, onRemove }: any) {
     
     const Icon = fieldTypes.find(f => f.type === field.type)?.icon || Type;
 
-    const typography = field.config?.typography || {};
-    const appearance = field.config?.appearance || {};
+    const globalTypography = field.config?.typography || {};
+    const globalAppearance = field.config?.appearance || {};
     
-    const customStyle: React.CSSProperties = {
-        fontFamily: typography.fontFamily,
-        fontSize: typography.fontSize ? `${typography.fontSize}px` : undefined,
-        fontWeight: typography.fontWeight,
-        fontStyle: typography.italic ? 'italic' : 'normal',
-        textDecoration: typography.underline ? 'underline' : 'none',
-        color: appearance.textColor || 'inherit',
+    const getTargetStyle = (targetName: string): React.CSSProperties => {
+        const targetTypography = { ...globalTypography, ...(globalTypography[targetName] || {}) };
+        const targetAppearance = { ...globalAppearance, ...(globalAppearance[targetName] || {}) };
+
+        return {
+            fontFamily: targetTypography.fontFamily,
+            fontSize: targetTypography.fontSize ? `${targetTypography.fontSize}px` : undefined,
+            fontWeight: targetTypography.fontWeight,
+            fontStyle: targetTypography.italic ? 'italic' : 'normal',
+            textDecoration: targetTypography.underline ? 'underline' : 'none',
+            color: targetAppearance.textColor || undefined,
+        };
     };
+
+    const labelStyle = getTargetStyle('label');
+    const descriptionStyle = getTargetStyle('description');
+    const inputStyle = getTargetStyle('input');
+    const placeholderStyle = getTargetStyle('placeholder');
 
     return (
         <div 
@@ -116,34 +126,44 @@ function CanvasField({ field, isSelected, onSelect, onRemove }: any) {
             </div>
             
             <div className="select-none flex-1 flex flex-col gap-3">
+                <style>{`
+                    .preview-input-${field.id}::placeholder {
+                        font-family: ${placeholderStyle.fontFamily || 'inherit'} !important;
+                        font-size: ${placeholderStyle.fontSize || 'inherit'} !important;
+                        font-weight: ${placeholderStyle.fontWeight || 'inherit'} !important;
+                        font-style: ${placeholderStyle.fontStyle || 'inherit'} !important;
+                        text-decoration: ${placeholderStyle.textDecoration || 'inherit'} !important;
+                        color: ${placeholderStyle.color || 'inherit'} !important;
+                    }
+                `}</style>
                 <div className="flex flex-col">
                     <div className="flex items-center gap-2">
                         <div className="select-none w-5 h-5 rounded bg-[rgba(255,255,255,0.05)] flex items-center justify-center text-[#8B8FA8]">
                             <Icon size={12} />
                         </div>
-                        <p className="select-none text-white text-sm font-medium flex items-center gap-1">
+                        <p className="select-none text-white text-sm font-medium flex items-center gap-1" style={labelStyle}>
                             {field.label}
                             {field.isRequired && <span className="text-[#D93025]">*</span>}
                         </p>
                     </div>
-                    {field.description && <p className="select-none text-[#8B8FA8] text-xs mt-1.5 ml-7">{field.description}</p>}
+                    {field.description && <p className="select-none text-[#8B8FA8] text-xs mt-1.5 ml-7" style={descriptionStyle}>{field.description}</p>}
                 </div>
                 
                 <div className="ml-7">
                     {field.type === 'textarea' ? (
                         <textarea 
-                            className="w-full bg-[rgba(255,255,255,0.04)] border border-[rgba(255,255,255,0.07)] rounded-md p-3 focus:outline-none pointer-events-none resize-none h-20"
+                            className={`w-full bg-[rgba(255,255,255,0.04)] border border-[rgba(255,255,255,0.07)] rounded-md p-3 focus:outline-none pointer-events-none resize-none h-20 preview-input-${field.id}`}
                             placeholder={field.placeholder || "Placeholder..."}
-                            style={customStyle}
+                            style={inputStyle}
                             readOnly
                             tabIndex={-1}
                         />
                     ) : (
                         <input 
                             type="text"
-                            className="w-full bg-[rgba(255,255,255,0.04)] border border-[rgba(255,255,255,0.07)] rounded-md p-3 focus:outline-none pointer-events-none"
+                            className={`w-full bg-[rgba(255,255,255,0.04)] border border-[rgba(255,255,255,0.07)] rounded-md p-3 focus:outline-none pointer-events-none preview-input-${field.id}`}
                             placeholder={field.placeholder || "Placeholder..."}
-                            style={customStyle}
+                            style={inputStyle}
                             readOnly
                             tabIndex={-1}
                         />
