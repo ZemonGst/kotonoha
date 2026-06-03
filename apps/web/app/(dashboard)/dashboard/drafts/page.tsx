@@ -3,7 +3,7 @@
 import React from "react";
 import Link from "next/link";
 import { formatDistanceToNow } from "date-fns";
-import { FileEdit, MoreVertical, Send, Loader2, FileIcon, Trash2, Archive } from "lucide-react";
+import { FileEdit, MoreVertical, Send, Loader2, FileIcon, Trash2, Archive, Eye } from "lucide-react";
 import { useGetAllForms } from "~/hooks/draft";
 import { useUpdateFormStatus, useDeleteForm } from "~/hooks/form";
 import { 
@@ -73,7 +73,13 @@ export default function DraftsPage() {
                                             </button>
                                         </DropdownMenuTrigger>
                                         <DropdownMenuContent align="end" className="w-44 bg-[#131422] border-[rgba(255,255,255,0.1)] rounded-xl shadow-xl p-1">
-                                            <DropdownMenuItem onClick={(e) => { e.stopPropagation(); handlePublish(form.id); }} className="text-white focus:bg-[rgba(255,255,255,0.06)] rounded-lg cursor-pointer flex items-center gap-2.5 py-2 px-3 transition-colors">
+                                            <DropdownMenuItem asChild className="text-white focus:bg-[rgba(255,255,255,0.06)] rounded-lg cursor-pointer flex items-center gap-2.5 py-2 px-3 transition-colors">
+                                                <Link href={`/dashboard/form/${form.id}?preview=true`} onClick={(e) => e.stopPropagation()}>
+                                                    <Eye size={15} className="opacity-70" /> 
+                                                    <span className="font-medium text-sm">Preview Form</span>
+                                                </Link>
+                                            </DropdownMenuItem>
+                                            <DropdownMenuItem onClick={(e) => { e.stopPropagation(); handlePublish(form.id); }} className="text-white focus:bg-[rgba(255,255,255,0.06)] rounded-lg cursor-pointer flex items-center gap-2.5 py-2 px-3 mt-1 transition-colors">
                                                 <Send size={15} className="opacity-70" /> 
                                                 <span className="font-medium text-sm">Publish Form</span>
                                             </DropdownMenuItem>

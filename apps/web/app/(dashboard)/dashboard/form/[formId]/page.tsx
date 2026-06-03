@@ -2,11 +2,12 @@
 
 import React, { useEffect } from "react";
 import Link from "next/link";
-import { useParams } from "next/navigation";
+import { useParams, useSearchParams } from "next/navigation";
 import { 
     ArrowLeft, Loader2, AlertTriangle, Type, AlignLeft, Hash, Mail, 
     Phone, ChevronDown, Circle, CheckSquare, ToggleLeft, Calendar, 
-    Clock, CalendarClock, Lock, GripVertical, Trash2, Settings
+    Clock, CalendarClock, Lock, GripVertical, Trash2, Settings,
+    Eye, Monitor, Tablet, Smartphone
 } from "lucide-react";
 import { useGetFormById, useGetFields, useSaveDelta } from "~/hooks/form";
 import { useFormBuilderStore } from "~/stores/formBuilderStore";
@@ -60,10 +61,11 @@ function SidebarField({ type, label, icon: Icon }: any) {
     );
 }
 
-function CanvasField({ field, isSelected, onSelect, onRemove }: any) {
+function CanvasField({ field, isSelected, onSelect, onRemove, isPreview }: any) {
     const { attributes, listeners, setNodeRef, setActivatorNodeRef, transform, transition, isDragging, isOver } = useSortable({
         id: field.id,
-        data: { isCanvasField: true, field }
+        data: { isCanvasField: true, field },
+        disabled: isPreview
     });
     
     const { active } = useDndContext();
@@ -104,10 +106,10 @@ function CanvasField({ field, isSelected, onSelect, onRemove }: any) {
         <div 
             ref={setNodeRef} 
             style={style} 
-            className={`select-none relative group bg-[rgba(255,255,255,0.02)] border ${isSelected ? 'border-[#D93025]' : 'border-[rgba(255,255,255,0.07)]'} rounded-xl p-4 flex gap-4 hover:border-[rgba(255,255,255,0.15)] transition-colors cursor-pointer`}
+            className={`select-none relative group rounded-xl p-4 flex gap-4 transition-colors ${isPreview ? '' : `bg-[rgba(255,255,255,0.02)] border cursor-pointer hover:border-[rgba(255,255,255,0.15)] ${isSelected ? 'border-[#D93025]' : 'border-[rgba(255,255,255,0.07)]'}`}`}
             onClick={(e) => {
                 e.stopPropagation();
-                onSelect(field.id);
+                if (!isPreview) onSelect(field.id);
             }}
         >
             {isOver && isSidebarFieldDragging && (
@@ -115,15 +117,17 @@ function CanvasField({ field, isSelected, onSelect, onRemove }: any) {
                     <span className="text-[#D93025] font-medium text-sm tracking-wide">Drop to insert</span>
                 </div>
             )}
-            <div 
-                ref={setActivatorNodeRef}
-                {...attributes}
-                {...listeners} 
-                className="touch-none select-none cursor-grab active:cursor-grabbing text-[#4A4D65] hover:text-white px-1 mt-2"
-                onClick={(e) => e.stopPropagation()}
-            >
-                <GripVertical size={20} />
-            </div>
+            {!isPreview && (
+                <div 
+                    ref={setActivatorNodeRef}
+                    {...attributes}
+                    {...listeners} 
+                    className="touch-none select-none cursor-grab active:cursor-grabbing text-[#4A4D65] hover:text-white px-1 mt-2"
+                    onClick={(e) => e.stopPropagation()}
+                >
+                    <GripVertical size={20} />
+                </div>
+            )}
             
             <div className="select-none flex-1 flex flex-col gap-3">
                 <style>{`
@@ -223,15 +227,17 @@ function CanvasField({ field, isSelected, onSelect, onRemove }: any) {
                 </div>
             </div>
             
-            <button 
-                onClick={(e) => {
-                    e.stopPropagation();
-                    onRemove(field.id);
-                }}
-                className="select-none opacity-0 group-hover:opacity-100 p-2 text-[#8B8FA8] hover:text-[#D93025] transition-all"
-            >
-                <Trash2 size={16} />
-            </button>
+            {!isPreview && (
+                <button 
+                    onClick={(e) => {
+                        e.stopPropagation();
+                        onRemove(field.id);
+                    }}
+                    className="select-none opacity-0 group-hover:opacity-100 p-2 text-[#8B8FA8] hover:text-[#D93025] transition-all"
+                >
+                    <Trash2 size={16} />
+                </button>
+            )}
         </div>
     );
 }
@@ -252,9 +258,10 @@ function BottomDropZone() {
     );
 }
 
-function Canvas({ fields, selectedFieldId, onSelect, onRemove }: any) {
+function Canvas({ fields, selectedFieldId, onSelect, onRemove, isPreview, previewDevice, title, description }: any) {
     const { setNodeRef, isOver, over } = useDroppable({
         id: "canvas",
+        disabled: isPreview
     });
 
     const { active } = useDndContext();
@@ -262,14 +269,24 @@ function Canvas({ fields, selectedFieldId, onSelect, onRemove }: any) {
 
     const sortedFields = [...fields].sort((a, b) => a.order - b.order);
 
+    const maxWidth = previewDevice === 'mobile' ? 'max-w-[375px]' : previewDevice === 'tablet' ? 'max-w-[768px]' : 'max-w-3xl';
+
     return (
         <div 
             ref={setNodeRef}
-            className={`flex-1 overflow-y-auto p-8 flex flex-col items-center ${isOver ? 'bg-[rgba(255,255,255,0.02)]' : ''}`}
-            onClick={() => onSelect(null)}
+            className={`flex-1 overflow-y-auto p-8 flex flex-col items-center ${isOver && !isPreview ? 'bg-[rgba(255,255,255,0.02)]' : ''} ${isPreview ? 'bg-white/5' : ''}`}
+            onClick={() => {
+                if (!isPreview) onSelect(null);
+            }}
         >
-            <div className="w-full max-w-3xl flex flex-col gap-6">
-                <div className={`min-h-[400px] border-2 border-dashed rounded-xl p-8 flex flex-col gap-4 ${isOver ? 'border-[#D93025] bg-[rgba(217,48,37,0.02)]' : 'border-[rgba(255,255,255,0.07)] bg-[rgba(255,255,255,0.01)]'} transition-colors relative`}>
+            <div className={`w-full ${maxWidth} flex flex-col gap-6 transition-all duration-300`}>
+                <div className={`min-h-[400px] ${isPreview ? 'p-8 flex flex-col gap-4 bg-[#080910] rounded-xl border border-[rgba(255,255,255,0.07)]' : `border-2 border-dashed rounded-xl p-8 flex flex-col gap-4 ${isOver ? 'border-[#D93025] bg-[rgba(217,48,37,0.02)]' : 'border-[rgba(255,255,255,0.07)] bg-[rgba(255,255,255,0.01)]'}`} transition-colors relative`}>
+                    {isPreview && (
+                        <div className="mb-6 px-4">
+                            <h1 className="text-3xl font-bold text-white mb-2">{title || 'Untitled Form'}</h1>
+                            {description && <p className="text-[#8B8FA8] text-lg">{description}</p>}
+                        </div>
+                    )}
                     {sortedFields.length === 0 ? (
                         <div className="h-full flex flex-col items-center justify-center text-center py-20 relative">
                             {isSidebarFieldDragging && isOver ? (
@@ -289,9 +306,10 @@ function Canvas({ fields, selectedFieldId, onSelect, onRemove }: any) {
                                     isSelected={field.id === selectedFieldId} 
                                     onSelect={onSelect}
                                     onRemove={onRemove}
+                                    isPreview={isPreview}
                                 />
                             ))}
-                            <BottomDropZone />
+                            {!isPreview && <BottomDropZone />}
                         </>
                     )}
                 </div>
@@ -303,6 +321,7 @@ function Canvas({ fields, selectedFieldId, onSelect, onRemove }: any) {
 export default function FormBuilderPage() {
     const params = useParams();
     const formId = params.formId as string;
+    const searchParams = useSearchParams();
 
     const { form, isLoading: isFormLoading, isError, error } = useGetFormById(formId);
     const { fields: initialFields, isLoading: isFieldsLoading } = useGetFields(formId);
@@ -310,6 +329,8 @@ export default function FormBuilderPage() {
     
     const store = useFormBuilderStore();
     const [activeId, setActiveId] = React.useState<string | null>(null);
+    const [isPreviewMode, setIsPreviewMode] = React.useState(searchParams.get("preview") === "true");
+    const [previewDevice, setPreviewDevice] = React.useState<'desktop' | 'tablet' | 'mobile'>('desktop');
 
     const sensors = useSensors(
         useSensor(PointerSensor, {
@@ -368,6 +389,17 @@ export default function FormBuilderPage() {
     }
 
     const selectedField = store.fields.find(f => f.id === store.selectedFieldId);
+
+    const handleTogglePreview = async () => {
+        if (!isPreviewMode) {
+            // About to enter preview, save changes first
+            if (store.isDirty) {
+                await store.tracker?.forceSave();
+            }
+        }
+        setIsPreviewMode(!isPreviewMode);
+        store.selectField(null); // Deselect field
+    };
 
     const handleDragStart = (event: any) => {
         setActiveId(event.active.id);
@@ -457,54 +489,96 @@ export default function FormBuilderPage() {
             <SortableContext items={[...store.fields].sort((a, b) => a.order - b.order).map(f => f.id)} strategy={verticalListSortingStrategy}>
                 <div className="flex flex-col h-full w-full bg-[#080910]">
                 {/* Builder Topbar */}
-                <div className="builder-topbar border-b border-[rgba(255,255,255,0.07)] h-14 px-4 flex items-center justify-between bg-[#0E0F1A]">
-                    <div className="flex items-center gap-4">
-                        <Link href="/dashboard" className="text-[#8B8FA8] hover:text-white transition-colors flex items-center gap-2 text-sm font-medium">
-                            <ArrowLeft size={16} />
-                            Back
-                        </Link>
-                        <div className="h-4 w-px bg-[rgba(255,255,255,0.1)] mx-2" />
-                        <input 
-                            className="bg-transparent border-none text-white font-medium text-sm focus:outline-none placeholder:text-[#4A4D65]" 
-                            placeholder="Form Title" 
-                            value={store.title}
-                            onChange={(e) => store.updateMeta(e.target.value, store.description)}
-                        />
-                    </div>
-                    <div className="flex items-center gap-2">
-                        <div className="flex items-center text-xs mr-2 transition-all">
-                            {store.isSaving ? (
-                                <span className="text-[#8B8FA8] flex items-center gap-1.5">
-                                    <Loader2 className="w-3 h-3 animate-spin" />
-                                    Saving...
-                                </span>
-                            ) : store.isDirty ? (
-                                <span className="text-[#8B8FA8]">Unsaved Changes</span>
-                            ) : store.lastSavedAt ? (
-                                <span className="text-emerald-500">Saved</span>
-                            ) : null}
+                {isPreviewMode ? (
+                    <div className="builder-topbar border-b border-[rgba(255,255,255,0.07)] h-14 px-4 flex items-center justify-between bg-[#0E0F1A]">
+                        <div className="flex items-center gap-4">
+                            <button onClick={handleTogglePreview} className="text-[#8B8FA8] hover:text-white transition-colors flex items-center gap-2 text-sm font-medium">
+                                <ArrowLeft size={16} />
+                                Back to Builder
+                            </button>
                         </div>
-                        <Link href="/dashboard/drafts" className="btn-secondary text-sm h-8 px-4 mr-2 bg-[rgba(255,255,255,0.05)] border border-[rgba(255,255,255,0.15)] text-white hover:bg-[rgba(255,255,255,0.1)] transition-all flex items-center justify-center">
-                            Drafts
-                        </Link>
-                        <button className="btn-secondary text-sm h-8 px-3" onClick={() => store.tracker?.forceSave()}>Save</button>
-                        <button className="btn-primary text-sm h-8 px-3" onClick={() => store.tracker?.forceSave()}>Publish</button>
+                        <div className="flex items-center gap-1 bg-[rgba(255,255,255,0.04)] p-1 rounded-lg border border-[rgba(255,255,255,0.07)]">
+                            <button 
+                                onClick={() => setPreviewDevice('desktop')}
+                                className={`p-1.5 rounded-md transition-colors ${previewDevice === 'desktop' ? 'bg-[#1A1B2D] text-white shadow-sm' : 'text-[#8B8FA8] hover:text-white'}`}
+                                title="Desktop"
+                            >
+                                <Monitor size={16} />
+                            </button>
+                            <button 
+                                onClick={() => setPreviewDevice('tablet')}
+                                className={`p-1.5 rounded-md transition-colors ${previewDevice === 'tablet' ? 'bg-[#1A1B2D] text-white shadow-sm' : 'text-[#8B8FA8] hover:text-white'}`}
+                                title="Tablet"
+                            >
+                                <Tablet size={16} />
+                            </button>
+                            <button 
+                                onClick={() => setPreviewDevice('mobile')}
+                                className={`p-1.5 rounded-md transition-colors ${previewDevice === 'mobile' ? 'bg-[#1A1B2D] text-white shadow-sm' : 'text-[#8B8FA8] hover:text-white'}`}
+                                title="Mobile"
+                            >
+                                <Smartphone size={16} />
+                            </button>
+                        </div>
+                        <div className="flex items-center gap-2">
+                            <button className="btn-primary text-sm h-8 px-3" onClick={() => store.tracker?.forceSave()}>Publish</button>
+                        </div>
                     </div>
-                </div>
+                ) : (
+                    <div className="builder-topbar border-b border-[rgba(255,255,255,0.07)] h-14 px-4 flex items-center justify-between bg-[#0E0F1A]">
+                        <div className="flex items-center gap-4">
+                            <Link href="/dashboard" className="text-[#8B8FA8] hover:text-white transition-colors flex items-center gap-2 text-sm font-medium">
+                                <ArrowLeft size={16} />
+                                Back
+                            </Link>
+                            <div className="h-4 w-px bg-[rgba(255,255,255,0.1)] mx-2" />
+                            <input 
+                                className="bg-transparent border-none text-white font-medium text-sm focus:outline-none placeholder:text-[#4A4D65]" 
+                                placeholder="Form Title" 
+                                value={store.title}
+                                onChange={(e) => store.updateMeta(e.target.value, store.description)}
+                            />
+                        </div>
+                        <div className="flex items-center gap-2">
+                            <div className="flex items-center text-xs mr-2 transition-all">
+                                {store.isSaving ? (
+                                    <span className="text-[#8B8FA8] flex items-center gap-1.5">
+                                        <Loader2 className="w-3 h-3 animate-spin" />
+                                        Saving...
+                                    </span>
+                                ) : store.isDirty ? (
+                                    <span className="text-[#8B8FA8]">Unsaved Changes</span>
+                                ) : store.lastSavedAt ? (
+                                    <span className="text-emerald-500">Saved</span>
+                                ) : null}
+                            </div>
+                            <button onClick={handleTogglePreview} className="btn-secondary text-sm h-8 w-8 p-0 mr-2 bg-[rgba(255,255,255,0.05)] border border-[rgba(255,255,255,0.15)] text-white hover:bg-[rgba(255,255,255,0.1)] transition-all flex items-center justify-center" title="Preview Mode">
+                                <Eye size={16} />
+                            </button>
+                            <Link href="/dashboard/drafts" className="btn-secondary text-sm h-8 px-4 mr-2 bg-[rgba(255,255,255,0.05)] border border-[rgba(255,255,255,0.15)] text-white hover:bg-[rgba(255,255,255,0.1)] transition-all flex items-center justify-center">
+                                Drafts
+                            </Link>
+                            <button className="btn-secondary text-sm h-8 px-3" onClick={() => store.tracker?.forceSave()}>Save</button>
+                            <button className="btn-primary text-sm h-8 px-3" onClick={() => store.tracker?.forceSave()}>Publish</button>
+                        </div>
+                    </div>
+                )}
 
                 {/* Main Builder Area */}
                 <div className="flex flex-1 overflow-hidden">
                     {/* Left Panel */}
-                    <div className="w-64 border-r border-[rgba(255,255,255,0.07)] bg-[#0C0D18] flex flex-col">
-                        <div className="p-4 border-b border-[rgba(255,255,255,0.07)]">
-                            <h3 className="text-xs font-semibold uppercase tracking-wider text-[#8B8FA8]">Form Elements</h3>
+                    {!isPreviewMode && (
+                        <div className="w-64 border-r border-[rgba(255,255,255,0.07)] bg-[#0C0D18] flex flex-col">
+                            <div className="p-4 border-b border-[rgba(255,255,255,0.07)]">
+                                <h3 className="text-xs font-semibold uppercase tracking-wider text-[#8B8FA8]">Form Elements</h3>
+                            </div>
+                            <div className="flex-1 p-3 flex flex-col gap-2 overflow-y-auto">
+                                {fieldTypes.map(f => (
+                                    <SidebarField key={f.type} type={f.type} label={f.label} icon={f.icon} />
+                                ))}
+                            </div>
                         </div>
-                        <div className="flex-1 p-3 flex flex-col gap-2 overflow-y-auto">
-                            {fieldTypes.map(f => (
-                                <SidebarField key={f.type} type={f.type} label={f.label} icon={f.icon} />
-                            ))}
-                        </div>
-                    </div>
+                    )}
 
                     {/* Canvas */}
                     <Canvas 
@@ -512,46 +586,52 @@ export default function FormBuilderPage() {
                         selectedFieldId={store.selectedFieldId}
                         onSelect={store.selectField}
                         onRemove={store.removeField}
+                        isPreview={isPreviewMode}
+                        previewDevice={previewDevice}
+                        title={store.title}
+                        description={store.description}
                     />
 
                     {/* Right Panel */}
-                    <div className="w-72 border-l border-[rgba(255,255,255,0.07)] bg-[#0C0D18] flex flex-col">
-                        <div className="p-4 border-b border-[rgba(255,255,255,0.07)]">
-                            <h3 className="text-xs font-semibold uppercase tracking-wider text-[#8B8FA8]">
-                                {selectedField ? 'Field Settings' : 'Form Settings'}
-                            </h3>
-                        </div>
-                        
-                        {selectedField ? (
-                            <Tabs defaultValue="settings" className="flex-1 flex flex-col w-full overflow-hidden mt-2">
-                                <div className="px-4">
-                                    <TabsList className="w-full bg-[rgba(255,255,255,0.04)] p-1 rounded-md grid grid-cols-2">
-                                        <TabsTrigger value="settings" className="text-xs data-[state=active]:bg-[#1A1B2D] data-[state=active]:text-white text-[#8B8FA8] rounded">Settings</TabsTrigger>
-                                        <TabsTrigger value="styling" className="text-xs data-[state=active]:bg-[#1A1B2D] data-[state=active]:text-white text-[#8B8FA8] rounded">Styling</TabsTrigger>
-                                    </TabsList>
-                                </div>
-                                <TabsContent value="settings" className="flex-1 flex flex-col m-0 outline-none overflow-hidden data-[state=active]:flex data-[state=inactive]:hidden">
-                                    <SettingsTab selectedField={selectedField} />
-                                </TabsContent>
-                                <TabsContent value="styling" className="flex-1 flex flex-col m-0 outline-none overflow-hidden data-[state=active]:flex data-[state=inactive]:hidden">
-                                    <StylingTab selectedField={selectedField} />
-                                </TabsContent>
-                            </Tabs>
-                        ) : (
-                            <div className="flex-1 p-4 flex flex-col items-center justify-center text-center gap-4 opacity-70">
-                                <div className="w-12 h-12 rounded-full bg-[rgba(255,255,255,0.04)] border border-[rgba(255,255,255,0.05)] flex items-center justify-center text-[#8B8FA8]">
-                                    <Settings size={20} />
-                                </div>
-                                <div>
-                                    <h4 className="text-sm font-medium text-white mb-1">No Field Selected</h4>
-                                    <p className="text-xs text-[#8B8FA8] max-w-[200px] leading-relaxed">
-                                        Select a field on the canvas to edit its settings
-                                    </p>
-                                </div>
+                    {!isPreviewMode && (
+                        <div className="w-72 border-l border-[rgba(255,255,255,0.07)] bg-[#0C0D18] flex flex-col">
+                            <div className="p-4 border-b border-[rgba(255,255,255,0.07)]">
+                                <h3 className="text-xs font-semibold uppercase tracking-wider text-[#8B8FA8]">
+                                    {selectedField ? 'Field Settings' : 'Form Settings'}
+                                </h3>
                             </div>
-                        )}
-                        {selectedField && <FieldConfigDebug selectedField={selectedField} />}
-                    </div>
+                            
+                            {selectedField ? (
+                                <Tabs defaultValue="settings" className="flex-1 flex flex-col w-full overflow-hidden mt-2">
+                                    <div className="px-4">
+                                        <TabsList className="w-full bg-[rgba(255,255,255,0.04)] p-1 rounded-md grid grid-cols-2">
+                                            <TabsTrigger value="settings" className="text-xs data-[state=active]:bg-[#1A1B2D] data-[state=active]:text-white text-[#8B8FA8] rounded">Settings</TabsTrigger>
+                                            <TabsTrigger value="styling" className="text-xs data-[state=active]:bg-[#1A1B2D] data-[state=active]:text-white text-[#8B8FA8] rounded">Styling</TabsTrigger>
+                                        </TabsList>
+                                    </div>
+                                    <TabsContent value="settings" className="flex-1 flex flex-col m-0 outline-none overflow-hidden data-[state=active]:flex data-[state=inactive]:hidden">
+                                        <SettingsTab selectedField={selectedField} />
+                                    </TabsContent>
+                                    <TabsContent value="styling" className="flex-1 flex flex-col m-0 outline-none overflow-hidden data-[state=active]:flex data-[state=inactive]:hidden">
+                                        <StylingTab selectedField={selectedField} />
+                                    </TabsContent>
+                                </Tabs>
+                            ) : (
+                                <div className="flex-1 p-4 flex flex-col items-center justify-center text-center gap-4 opacity-70">
+                                    <div className="w-12 h-12 rounded-full bg-[rgba(255,255,255,0.04)] border border-[rgba(255,255,255,0.05)] flex items-center justify-center text-[#8B8FA8]">
+                                        <Settings size={20} />
+                                    </div>
+                                    <div>
+                                        <h4 className="text-sm font-medium text-white mb-1">No Field Selected</h4>
+                                        <p className="text-xs text-[#8B8FA8] max-w-[200px] leading-relaxed">
+                                            Select a field on the canvas to edit its settings
+                                        </p>
+                                    </div>
+                                </div>
+                            )}
+                            {selectedField && <FieldConfigDebug selectedField={selectedField} />}
+                        </div>
+                    )}
                 </div>
             </div>
                 <DragOverlay>
