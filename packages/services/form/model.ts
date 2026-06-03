@@ -62,6 +62,19 @@ export const updateFormStatusOutputSchema = createFormOutputSchema;
 
 export type UpdateFormStatusOutputType = z.infer<typeof updateFormStatusOutputSchema>;
 
+export const updateFormInputSchema = z.object({
+    formId: z.string().uuid().describe("Unique identifier of the form"),
+    userId: z.string().uuid().describe("ID of the user requesting the update"),
+    title: z.string().min(1).max(100).optional().describe("New title for the form"),
+    description: z.string().max(500).optional().nullable().describe("New description for the form"),
+});
+
+export type UpdateFormInputType = z.infer<typeof updateFormInputSchema>;
+
+export const updateFormOutputSchema = createFormOutputSchema;
+
+export type UpdateFormOutputType = z.infer<typeof updateFormOutputSchema>;
+
 export const formFieldTypes = [
     "text",
     "number",

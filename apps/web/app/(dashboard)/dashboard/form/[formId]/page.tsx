@@ -9,7 +9,7 @@ import {
     Clock, CalendarClock, Lock, GripVertical, Trash2, Settings,
     Eye, Monitor, Tablet, Smartphone
 } from "lucide-react";
-import { useGetFormById, useGetFields, useSaveDelta } from "~/hooks/form";
+import { useGetFormById, useGetFields, useSaveDelta, useUpdateForm } from "~/hooks/form";
 import { useFormBuilderStore } from "~/stores/formBuilderStore";
 import { 
     DndContext, DragEndEvent, useDraggable, useDroppable, closestCenter, 
@@ -326,6 +326,7 @@ export default function FormBuilderPage() {
     const { form, isLoading: isFormLoading, isError, error } = useGetFormById(formId);
     const { fields: initialFields, isLoading: isFieldsLoading } = useGetFields(formId);
     const { saveDeltaAsync } = useSaveDelta();
+    const { updateFormAsync } = useUpdateForm();
     
     const store = useFormBuilderStore();
     const [activeId, setActiveId] = React.useState<string | null>(null);
@@ -533,10 +534,16 @@ export default function FormBuilderPage() {
                             </Link>
                             <div className="h-4 w-px bg-[rgba(255,255,255,0.1)] mx-2" />
                             <input 
-                                className="bg-transparent border-none text-white font-medium text-sm focus:outline-none placeholder:text-[#4A4D65]" 
+                                className="bg-transparent border border-transparent hover:border-[rgba(255,255,255,0.15)] hover:bg-[rgba(255,255,255,0.05)] rounded px-2 py-1 -ml-2 text-white font-medium text-sm focus:outline-none focus:border-[rgba(255,255,255,0.2)] focus:bg-[rgba(255,255,255,0.05)] placeholder:text-[#4A4D65] transition-all cursor-pointer" 
                                 placeholder="Form Title" 
                                 value={store.title}
+                                onClick={() => store.selectField(null)}
                                 onChange={(e) => store.updateMeta(e.target.value, store.description)}
+                                onBlur={() => {
+                                    if (store.title) {
+                                        updateFormAsync({ formId: store.formId!, title: store.title, description: store.description });
+                                    }
+                                }}
                             />
                         </div>
                         <div className="flex items-center gap-2">
@@ -617,15 +624,32 @@ export default function FormBuilderPage() {
                                     </TabsContent>
                                 </Tabs>
                             ) : (
-                                <div className="flex-1 p-4 flex flex-col items-center justify-center text-center gap-4 opacity-70">
-                                    <div className="w-12 h-12 rounded-full bg-[rgba(255,255,255,0.04)] border border-[rgba(255,255,255,0.05)] flex items-center justify-center text-[#8B8FA8]">
-                                        <Settings size={20} />
+                                <div className="flex-1 p-4 flex flex-col gap-4 overflow-y-auto">
+                                    <div className="flex flex-col gap-2">
+                                        <label className="text-sm font-medium text-white">Form Title</label>
+                                        <input 
+                                            className="w-full bg-[rgba(255,255,255,0.04)] border border-[rgba(255,255,255,0.07)] rounded-md p-3 text-sm text-white focus:outline-none focus:border-[#D93025] transition-colors"
+                                            value={store.title}
+                                            onChange={(e) => store.updateMeta(e.target.value, store.description)}
+                                            onBlur={() => {
+                                                if (store.title) {
+                                                    updateFormAsync({ formId: store.formId!, title: store.title, description: store.description });
+                                                }
+                                            }}
+                                            placeholder="Enter form title..."
+                                        />
                                     </div>
-                                    <div>
-                                        <h4 className="text-sm font-medium text-white mb-1">No Field Selected</h4>
-                                        <p className="text-xs text-[#8B8FA8] max-w-[200px] leading-relaxed">
-                                            Select a field on the canvas to edit its settings
-                                        </p>
+                                    <div className="flex flex-col gap-2">
+                                        <label className="text-sm font-medium text-white">Form Description</label>
+                                        <textarea 
+                                            className="w-full h-32 resize-none bg-[rgba(255,255,255,0.04)] border border-[rgba(255,255,255,0.07)] rounded-md p-3 text-sm text-white focus:outline-none focus:border-[#D93025] transition-colors"
+                                            value={store.description || ''}
+                                            onChange={(e) => store.updateMeta(store.title, e.target.value)}
+                                            onBlur={() => {
+                                                updateFormAsync({ formId: store.formId!, title: store.title, description: store.description });
+                                            }}
+                                            placeholder="Add a description for your form..."
+                                        />
                                     </div>
                                 </div>
                             )}

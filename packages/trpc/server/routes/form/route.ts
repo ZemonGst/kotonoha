@@ -10,6 +10,8 @@ import {
     getFormByIdOutputSchema,
     updateFormStatusInputSchema,
     updateFormStatusOutputSchema,
+    updateFormInputSchema,
+    updateFormOutputSchema,
     createFieldInputSchema,
     createFieldOutputSchema,
     getFieldsInputSchema,
@@ -94,6 +96,24 @@ export const formRouter = router({
                 formId: input.formId,
                 userId: userId,
                 status: input.status,
+            });
+            
+            return form;
+        }),
+
+    // Update form
+    updateForm: protectedProcedure
+        .meta(postMeta("/updateForm", "Update a form's details"))
+        .input(updateFormInputSchema)
+        .output(updateFormOutputSchema)
+        .mutation(async ({ input, ctx }) => {
+            const { userId } = ctx;
+            
+            const form = await formService.updateForm({
+                formId: input.formId,
+                userId: userId,
+                title: input.title,
+                description: input.description,
             });
             
             return form;

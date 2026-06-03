@@ -281,6 +281,38 @@ export const useUpdateFormStatus = (options?: { onSuccess?: (data: any) => void 
     };
 };
 
+export const useUpdateForm = (options?: { onSuccess?: (data: any) => void }) => {
+    const mutation = trpc.form.updateForm.useMutation({
+        retry: trpcAuthRetry,
+        onSuccess: options?.onSuccess,
+    });
+
+    const refetch = useCallback(() => {
+        if (mutation.variables) {
+            mutation.mutate(mutation.variables);
+        }
+    }, [mutation.variables, mutation.mutate]);
+
+    useAuthErrorInterceptor({
+        isError: mutation.isError,
+        error: mutation.error,
+        refetch
+    });
+
+    return {
+        updateFormAsync: mutation.mutateAsync,
+        updateForm: mutation.mutate,
+        error: mutation.error,
+        isError: mutation.isError,
+        isPending: mutation.isPending,
+        failureCount: mutation.failureCount,
+        isIdle: mutation.isIdle,
+        isSuccess: mutation.isSuccess,
+        variables: mutation.variables,
+        status: mutation.status,
+    };
+};
+
 export const useDeleteForm = (options?: { onSuccess?: (data: any) => void }) => {
     const mutation = trpc.form.deleteForm.useMutation({
         retry: trpcAuthRetry,

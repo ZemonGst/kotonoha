@@ -35,6 +35,14 @@ export const updateFormStatusInputSchema = z.object({
 
 export const updateFormStatusOutputSchema = formEntitySchema;
 
+export const updateFormInputSchema = z.object({
+    formId: z.string().uuid().describe('Unique identifier of the form'),
+    title: z.string().min(1).max(100).optional().describe('New title for the form'),
+    description: z.string().max(500).optional().nullable().describe('New description for the form'),
+});
+
+export const updateFormOutputSchema = formEntitySchema;
+
 export const formFieldTypes = [
     "text",
     "number",

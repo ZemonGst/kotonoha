@@ -11,6 +11,9 @@ import {
     UpdateFormStatusInputType,
     updateFormStatusInputSchema,
     updateFormStatusOutputSchema,
+    UpdateFormInputType,
+    updateFormInputSchema,
+    updateFormOutputSchema,
     CreateFieldInputType,
     createFieldInputSchema,
     createFieldOutputSchema,
@@ -274,6 +277,51 @@ class FormService {
         }
 
         return updateFormStatusOutputSchema.parseAsync(updateResult[0]);
+    }
+
+    public async updateForm(payload: UpdateFormInputType) {
+        const { formId, userId, title, description } = await updateFormInputSchema.parseAsync(payload);
+
+        // Verify form exists and belongs to the user
+        const formResult = await db
+            .select({ id: formsTable.id })
+            .from(formsTable)
+            .where(
+                and(
+                    eq(formsTable.id, formId),
+                    eq(formsTable.createdBy, userId)
+                )
+            );
+
+        if (!formResult || formResult.length === 0) {
+            throw new Error("Form not found or you do not have permission to modify it");
+        }
+
+        const updateSet: Record<string, any> = { updatedAt: new Date() };
+        if (title !== undefined) updateSet.title = title;
+        if (description !== undefined) updateSet.description = description;
+
+        if (Object.keys(updateSet).length === 1) {
+            // Nothing to update other than updatedAt, but let's just return the current form
+            const currentForm = await db
+                .select()
+                .from(formsTable)
+                .where(eq(formsTable.id, formId));
+            
+            return updateFormOutputSchema.parseAsync(currentForm[0]);
+        }
+
+        const updateResult = await db
+            .update(formsTable)
+            .set(updateSet)
+            .where(eq(formsTable.id, formId))
+            .returning();
+
+        if (!updateResult || updateResult.length === 0 || !updateResult[0]) {
+            throw new Error("Something went wrong while updating the form");
+        }
+
+        return updateFormOutputSchema.parseAsync(updateResult[0]);
     }
 
     public async createField(payload: CreateFieldInputType) {
