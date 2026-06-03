@@ -3,9 +3,11 @@
 import React from "react";
 import Link from "next/link";
 import { formatDistanceToNow } from "date-fns";
-import { FileEdit, MoreVertical, Send, Loader2, FileIcon, Trash2, Archive, Eye } from "lucide-react";
+import { FileEdit, MoreVertical, Send, Loader2, FileIcon, Trash2, Archive, Eye, LayoutTemplate, Plus } from "lucide-react";
 import { useGetAllForms } from "~/hooks/draft";
-import { useUpdateFormStatus, useDeleteForm } from "~/hooks/form";
+import { useGetAllTemplates, useCloneTemplate } from "~/hooks/default-template";
+import { useUpdateFormStatus, useDeleteForm, useCreateForm } from "~/hooks/form";
+import { useRouter } from "next/navigation";
 import { 
     DropdownMenu, 
     DropdownMenuContent, 
@@ -15,12 +17,20 @@ import {
 
 export default function DraftsPage() {
     const { forms, isLoading, refetch } = useGetAllForms("draft");
+    const { templates, isLoading: isTemplatesLoading } = useGetAllTemplates();
     const { updateFormStatus, isPending } = useUpdateFormStatus({
         onSuccess: () => refetch()
     });
     const { deleteForm, isPending: isDeletePending } = useDeleteForm({
         onSuccess: () => refetch()
     });
+    const { createFormAsync, isPending: isCreatePending } = useCreateForm();
+    const { cloneTemplateAsync, isPending: isCloning } = useCloneTemplate();
+    const router = useRouter();
+
+    const handleTemplateClick = (template: any) => {
+        router.push(`/dashboard/form/${template.formId}?preview=true&isTemplate=true&templateId=${template.id}`);
+    };
 
     const handlePublish = (formId: string) => {
         updateFormStatus({ formId, status: "active" });
@@ -41,6 +51,83 @@ export default function DraftsPage() {
                     <h1 className="text-white text-2xl font-bold tracking-tight">Drafts</h1>
                     <p className="text-[#A1A5B7] mt-1">Forms that are currently a work in progress and not yet published.</p>
                 </div>
+            </div>
+
+            {/* Starter Templates Section */}
+            <div className="mb-10">
+                <div className="flex items-center gap-2 mb-4">
+                    <h2 className="text-white text-lg font-semibold flex items-center gap-2">
+                        <LayoutTemplate size={18} className="text-[#D93025]" />
+                        Starter Templates
+                    </h2>
+                </div>
+                
+                {isTemplatesLoading ? (
+                    <div className="flex justify-center items-center py-10">
+                        <Loader2 className="animate-spin text-[#D93025]" size={24} />
+                    </div>
+                ) : (
+                    <div className="flex gap-4 overflow-x-auto pb-4 scrollbar-thin scrollbar-thumb-[rgba(255,255,255,0.1)] scrollbar-track-transparent">
+                        <div 
+                            className={`shrink-0 w-64 h-36 rounded-xl border border-dashed border-[rgba(255,255,255,0.15)] bg-[rgba(255,255,255,0.02)] flex flex-col items-center justify-center gap-3 hover:bg-[rgba(217,48,37,0.05)] hover:border-[rgba(217,48,37,0.3)] transition-all cursor-pointer group ${isCreatePending ? 'opacity-50 pointer-events-none' : ''}`}
+                            onClick={async () => {
+                                if (isCreatePending) return;
+                                try {
+                                    const form = await createFormAsync({ title: 'Untitled Form', description: '' });
+                                    if (form?.id) {
+                                        router.push(`/dashboard/form/${form.id}`);
+                                    }
+                                } catch (e) {
+                                    console.error('Failed to create form:', e);
+                                }
+                            }}
+                        >
+                            <div className="w-10 h-10 rounded-full bg-[rgba(255,255,255,0.05)] flex items-center justify-center group-hover:bg-[#D93025] group-hover:text-white transition-all text-[#A1A5B7]">
+                                <Plus size={20} />
+                            </div>
+                            <span className="text-sm font-medium text-white">Start from scratch</span>
+                        </div>
+                        
+                        {templates?.map(template => (
+                            <div 
+                                key={template.id}
+                                onClick={() => handleTemplateClick(template)}
+                                className="shrink-0 w-64 h-36 rounded-xl border border-[rgba(255,255,255,0.08)] bg-[#0C0D18] p-4 flex flex-col hover:bg-[#131422] hover:border-[rgba(217,48,37,0.3)] hover:shadow-[0_8px_30px_rgb(0,0,0,0.12)] transition-all cursor-pointer group relative overflow-hidden"
+                            >
+                                <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-bl from-[rgba(217,48,37,0.1)] to-transparent opacity-0 group-hover:opacity-100 transition-opacity rounded-bl-3xl" />
+                                <div className="flex-1">
+                                    <h3 className="text-base font-semibold text-white mb-1.5 line-clamp-1">{template.name}</h3>
+                                    <p className="text-xs text-[#8B8FA8] line-clamp-2 leading-relaxed">{template.description}</p>
+                                </div>
+                                <div className="mt-auto flex items-center justify-between relative z-10">
+                                    <span className="text-[10px] font-semibold tracking-wider uppercase text-[#D93025]">{template.category || "General"}</span>
+                                    <button 
+                                        onClick={async (e) => {
+                                            e.stopPropagation();
+                                            if (isCloning) return;
+                                            try {
+                                                const result = await cloneTemplateAsync({ templateId: template.id });
+                                                router.push(`/dashboard/form/${result.formId}`);
+                                            } catch (err) {
+                                                console.error('Failed to clone template:', err);
+                                            }
+                                        }}
+                                        disabled={isCloning}
+                                        className="opacity-0 group-hover:opacity-100 transition-opacity bg-[#D93025] hover:bg-[#b8271e] text-white text-[10px] font-medium px-2.5 py-1.5 rounded flex items-center gap-1 shadow-md shadow-[rgba(217,48,37,0.2)] disabled:pointer-events-none"
+                                    >
+                                        Use Template
+                                    </button>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                )}
+            </div>
+
+            <div className="h-px w-full bg-[rgba(255,255,255,0.05)] mb-8" />
+
+            <div className="flex items-center gap-2 mb-4">
+                <h2 className="text-white text-lg font-semibold">Your Drafts</h2>
             </div>
 
             {isLoading ? (
@@ -114,6 +201,7 @@ export default function DraftsPage() {
                     ))}
                 </div>
             )}
+            
         </div>
     );
 }

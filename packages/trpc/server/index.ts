@@ -5,6 +5,7 @@ import { authRouter } from "./routes/auth/route";
 import { dashboardRouter } from "./routes/dashboard/route";
 import { formRouter } from "./routes/form/route";
 import { draftRouter } from "./routes/draft/route";
+import { defaultTemplateRouter } from "./routes/default-template/route";
 
 export const serverRouter = router({
   health: healthRouter,
@@ -12,6 +13,7 @@ export const serverRouter = router({
   dashboard: dashboardRouter,
   form: formRouter,
   draft: draftRouter,
+  defaultTemplate: defaultTemplateRouter,
 });
 
 

@@ -1,5 +1,6 @@
-import { db, eq, and, desc } from "@repo/database";
+import { db, eq, and, desc, notInArray } from "@repo/database";
 import { formsTable } from "@repo/database/models/form";
+import { defaultTemplatesTable } from "@repo/database/models/default_templates";
 import { 
     GetAllFormsInputType, 
     getAllFormsInputSchema,
@@ -13,6 +14,13 @@ class DraftService {
         let condition = eq(formsTable.createdBy, userId);
         if (status) {
             condition = and(eq(formsTable.createdBy, userId), eq(formsTable.status, status)) as any;
+        }
+
+        const templateForms = await db.select({ formId: defaultTemplatesTable.formId }).from(defaultTemplatesTable);
+        const templateFormIds = templateForms.map(t => t.formId);
+
+        if (templateFormIds.length > 0) {
+            condition = and(condition, notInArray(formsTable.id, templateFormIds)) as any;
         }
 
         const results = await db

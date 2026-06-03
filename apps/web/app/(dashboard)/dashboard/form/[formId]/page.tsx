@@ -2,7 +2,7 @@
 
 import React, { useEffect } from "react";
 import Link from "next/link";
-import { useParams, useSearchParams } from "next/navigation";
+import { useParams, useSearchParams, useRouter } from "next/navigation";
 import { 
     ArrowLeft, Loader2, AlertTriangle, Type, AlignLeft, Hash, Mail, 
     Phone, ChevronDown, Circle, CheckSquare, ToggleLeft, Calendar, 
@@ -10,6 +10,7 @@ import {
     Eye, Monitor, Tablet, Smartphone, GitBranch
 } from "lucide-react";
 import { useGetFormById, useGetFields, useSaveDelta, useUpdateForm } from "~/hooks/form";
+import { useCloneTemplate } from "~/hooks/default-template";
 import { evaluateLogic } from "~/lib/logic-evaluator";
 import { useFormBuilderStore } from "~/stores/formBuilderStore";
 import { 
@@ -415,9 +416,14 @@ export default function FormBuilderPage() {
     
     const store = useFormBuilderStore();
     const [activeId, setActiveId] = React.useState<string | null>(null);
-    const [isPreviewMode, setIsPreviewMode] = React.useState(searchParams.get("preview") === "true");
+    const isTemplate = searchParams.get("isTemplate") === "true";
+    const templateId = searchParams.get("templateId");
+    const [isPreviewMode, setIsPreviewMode] = React.useState(isTemplate || searchParams.get("preview") === "true");
     const [previewDevice, setPreviewDevice] = React.useState<'desktop' | 'tablet' | 'mobile'>('desktop');
     const [previewValues, setPreviewValues] = React.useState<Record<string, any>>({});
+    
+    const { cloneTemplateAsync, isPending: isCloning } = useCloneTemplate();
+    const router = useRouter();
 
     const handlePreviewValueChange = (fieldId: string, value: any) => {
         setPreviewValues(prev => ({ ...prev, [fieldId]: value }));
@@ -482,6 +488,7 @@ export default function FormBuilderPage() {
     const selectedField = store.fields.find(f => f.id === store.selectedFieldId);
 
     const handleTogglePreview = async () => {
+        if (isTemplate) return;
         if (!isPreviewMode) {
             // About to enter preview, save changes first
             if (store.isDirty) {
@@ -582,7 +589,57 @@ export default function FormBuilderPage() {
             <SortableContext items={[...store.fields].sort((a, b) => a.order - b.order).map(f => f.id)} strategy={verticalListSortingStrategy}>
                 <div className="flex flex-col h-full w-full bg-[#080910]">
                 {/* Builder Topbar */}
-                {isPreviewMode ? (
+                {isTemplate ? (
+                    <div className="builder-topbar border-b border-[rgba(255,255,255,0.07)] h-14 px-4 flex items-center justify-between bg-[#0E0F1A]">
+                        <div className="flex items-center gap-4">
+                            <Link href="/dashboard/drafts" className="text-[#8B8FA8] hover:text-white transition-colors flex items-center gap-2 text-sm font-medium">
+                                <ArrowLeft size={16} />
+                                Back to Templates
+                            </Link>
+                        </div>
+                        <div className="flex items-center gap-1 bg-[rgba(255,255,255,0.04)] p-1 rounded-lg border border-[rgba(255,255,255,0.07)]">
+                            <button 
+                                onClick={() => setPreviewDevice('desktop')}
+                                className={`p-1.5 rounded-md transition-colors ${previewDevice === 'desktop' ? 'bg-[#1A1B2D] text-white shadow-sm' : 'text-[#8B8FA8] hover:text-white'}`}
+                                title="Desktop"
+                            >
+                                <Monitor size={16} />
+                            </button>
+                            <button 
+                                onClick={() => setPreviewDevice('tablet')}
+                                className={`p-1.5 rounded-md transition-colors ${previewDevice === 'tablet' ? 'bg-[#1A1B2D] text-white shadow-sm' : 'text-[#8B8FA8] hover:text-white'}`}
+                                title="Tablet"
+                            >
+                                <Tablet size={16} />
+                            </button>
+                            <button 
+                                onClick={() => setPreviewDevice('mobile')}
+                                className={`p-1.5 rounded-md transition-colors ${previewDevice === 'mobile' ? 'bg-[#1A1B2D] text-white shadow-sm' : 'text-[#8B8FA8] hover:text-white'}`}
+                                title="Mobile"
+                            >
+                                <Smartphone size={16} />
+                            </button>
+                        </div>
+                        <div className="flex items-center gap-2">
+                            <button 
+                                className="btn-primary text-sm h-8 px-4 flex items-center gap-2" 
+                                disabled={isCloning}
+                                onClick={async () => {
+                                    if (!templateId) return;
+                                    try {
+                                        const result = await cloneTemplateAsync({ templateId });
+                                        router.push(`/dashboard/form/${result.formId}`);
+                                    } catch (err) {
+                                        console.error('Failed to clone template:', err);
+                                    }
+                                }}
+                            >
+                                {isCloning ? <Loader2 className="w-4 h-4 animate-spin" /> : null}
+                                Use this template
+                            </button>
+                        </div>
+                    </div>
+                ) : isPreviewMode ? (
                     <div className="builder-topbar border-b border-[rgba(255,255,255,0.07)] h-14 px-4 flex items-center justify-between bg-[#0E0F1A]">
                         <div className="flex items-center gap-4">
                             <button onClick={handleTogglePreview} className="text-[#8B8FA8] hover:text-white transition-colors flex items-center gap-2 text-sm font-medium">

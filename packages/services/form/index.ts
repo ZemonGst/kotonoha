@@ -1,6 +1,7 @@
 import { db, eq, and, asc, inArray, sql } from "@repo/database";
 import { formsTable } from "@repo/database/models/form";
 import { formFieldsTable } from "@repo/database/models/form-field";
+import { defaultTemplatesTable } from "@repo/database/models/default_templates";
 
 import { 
     CreateFormInputType, 
@@ -232,17 +233,24 @@ class FormService {
             .select({
                 title: formsTable.title,
                 description: formsTable.description,
+                createdBy: formsTable.createdBy,
             })
             .from(formsTable)
-            .where(
-                and(
-                    eq(formsTable.id, formId),
-                    eq(formsTable.createdBy, userId)
-                )
-            );
+            .where(eq(formsTable.id, formId));
 
         if (!result || result.length === 0 || !result[0]) {
             throw new Error("Form not found or you do not have permission to view it");
+        }
+
+        if (result[0].createdBy !== userId) {
+            const templateCheck = await db
+                .select({ id: defaultTemplatesTable.id })
+                .from(defaultTemplatesTable)
+                .where(eq(defaultTemplatesTable.formId, formId));
+            
+            if (templateCheck.length === 0) {
+                throw new Error("Form not found or you do not have permission to view it");
+            }
         }
 
         return getFormByIdOutputSchema.parseAsync(result[0]);

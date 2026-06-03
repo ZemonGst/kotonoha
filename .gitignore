@@ -40,3 +40,6 @@ yarn-error.log*
 # Ignored folders
 All promptt/
 assets/
+
+# Project design docs
+DESIGN_PRODUCT.md
