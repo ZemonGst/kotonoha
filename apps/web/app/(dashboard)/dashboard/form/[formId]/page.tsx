@@ -7,9 +7,10 @@ import {
     ArrowLeft, Loader2, AlertTriangle, Type, AlignLeft, Hash, Mail, 
     Phone, ChevronDown, Circle, CheckSquare, ToggleLeft, Calendar, 
     Clock, CalendarClock, Lock, GripVertical, Trash2, Settings,
-    Eye, Monitor, Tablet, Smartphone
+    Eye, Monitor, Tablet, Smartphone, GitBranch
 } from "lucide-react";
 import { useGetFormById, useGetFields, useSaveDelta, useUpdateForm } from "~/hooks/form";
+import { evaluateLogic } from "~/lib/logic-evaluator";
 import { useFormBuilderStore } from "~/stores/formBuilderStore";
 import { 
     DndContext, DragEndEvent, useDraggable, useDroppable, closestCenter, 
@@ -61,7 +62,7 @@ function SidebarField({ type, label, icon: Icon }: any) {
     );
 }
 
-function CanvasField({ field, isSelected, onSelect, onRemove, isPreview }: any) {
+function CanvasField({ field, isSelected, onSelect, onRemove, isPreview, previewValue, onPreviewChange }: any) {
     const { attributes, listeners, setNodeRef, setActivatorNodeRef, transform, transition, isDragging, isOver } = useSortable({
         id: field.id,
         data: { isCanvasField: true, field },
@@ -149,6 +150,12 @@ function CanvasField({ field, isSelected, onSelect, onRemove, isPreview }: any) 
                             {field.label}
                             {field.isRequired && <span className="text-[#D93025]">*</span>}
                         </p>
+                        {!isPreview && field.config?.logic?.rules?.length > 0 && (
+                            <div className="flex items-center gap-1 bg-[rgba(217,48,37,0.1)] text-[#D93025] px-1.5 py-0.5 rounded text-[10px] ml-2" title="Conditional Logic attached">
+                                <GitBranch size={10} />
+                                Logic
+                            </div>
+                        )}
                     </div>
                     {field.description && <p className="select-none text-[#8B8FA8] text-xs mt-1.5 ml-7" style={descriptionStyle}>{field.description}</p>}
                 </div>
@@ -156,27 +163,52 @@ function CanvasField({ field, isSelected, onSelect, onRemove, isPreview }: any) 
                 <div className="ml-7">
                     {field.type === 'textarea' ? (
                         <textarea 
-                            className={`w-full bg-[rgba(255,255,255,0.04)] border border-[rgba(255,255,255,0.07)] rounded-md p-3 focus:outline-none pointer-events-none resize-none h-20 preview-input-${field.id}`}
+                            className={`w-full bg-[rgba(255,255,255,0.04)] border border-[rgba(255,255,255,0.07)] rounded-md p-3 focus:outline-none resize-none h-20 preview-input-${field.id} ${isPreview ? 'focus:border-[rgba(255,255,255,0.2)] text-white' : 'pointer-events-none'}`}
                             placeholder={field.placeholder || "Placeholder..."}
                             style={inputStyle}
-                            readOnly
-                            tabIndex={-1}
+                            readOnly={!isPreview}
+                            tabIndex={isPreview ? 0 : -1}
+                            value={isPreview ? previewValue || '' : ''}
+                            onChange={(e) => isPreview && onPreviewChange(e.target.value)}
                         />
                     ) : field.type === 'select' ? (
                         <div 
-                            className={`w-full bg-[rgba(255,255,255,0.04)] border border-[rgba(255,255,255,0.07)] rounded-md p-3 focus:outline-none pointer-events-none flex justify-between items-center preview-input-${field.id}`}
+                            className={`w-full bg-[rgba(255,255,255,0.04)] border border-[rgba(255,255,255,0.07)] rounded-md p-3 focus:outline-none flex justify-between items-center preview-input-${field.id} ${isPreview ? 'cursor-pointer hover:bg-[rgba(255,255,255,0.06)]' : 'pointer-events-none'}`}
                             style={inputStyle}
                         >
-                            <span className="opacity-70">{field.placeholder || "Select option..."}</span>
-                            <ChevronDown size={16} className="opacity-50" />
+                            {isPreview ? (
+                                <select 
+                                    className="w-full bg-transparent outline-none appearance-none text-white cursor-pointer"
+                                    value={previewValue || ''}
+                                    onChange={(e) => onPreviewChange(e.target.value)}
+                                >
+                                    <option value="" disabled className="text-[#8B8FA8] bg-[#131422]">{field.placeholder || "Select option..."}</option>
+                                    {field.config?.options?.map((opt: any) => (
+                                        <option key={opt.value} value={opt.value} className="text-white bg-[#131422]">{opt.label}</option>
+                                    ))}
+                                </select>
+                            ) : (
+                                <>
+                                    <span className="opacity-70">{field.placeholder || "Select option..."}</span>
+                                    <ChevronDown size={16} className="opacity-50" />
+                                </>
+                            )}
                         </div>
                     ) : field.type === 'radio' ? (
-                        <div className={`flex ${field.config?.layout === 'horizontal' ? 'flex-row gap-6' : 'flex-col gap-3'} pointer-events-none`}>
+                        <div className={`flex ${field.config?.layout === 'horizontal' ? 'flex-row gap-6' : 'flex-col gap-3'} ${!isPreview && 'pointer-events-none'}`}>
                             {field.config?.options?.length ? field.config.options.map((opt: any) => (
-                                <div key={opt.id} className="flex items-center gap-2">
-                                    <div className="w-4 h-4 rounded-full border border-[rgba(255,255,255,0.3)]" />
+                                <label key={opt.id} className={`flex items-center gap-2 ${isPreview && 'cursor-pointer'}`}>
+                                    <input 
+                                        type="radio" 
+                                        name={`radio-${field.id}`}
+                                        value={opt.value}
+                                        checked={previewValue === opt.value}
+                                        onChange={() => isPreview && onPreviewChange(opt.value)}
+                                        className={isPreview ? "cursor-pointer" : ""}
+                                        disabled={!isPreview}
+                                    />
                                     <span style={inputStyle}>{opt.label}</span>
-                                </div>
+                                </label>
                             )) : (
                                 <div className="flex items-center gap-2">
                                     <div className="w-4 h-4 rounded-full border border-[rgba(255,255,255,0.3)]" />
@@ -185,13 +217,30 @@ function CanvasField({ field, isSelected, onSelect, onRemove, isPreview }: any) 
                             )}
                         </div>
                     ) : field.type === 'checkbox_group' ? (
-                        <div className="flex flex-col gap-3 pointer-events-none">
-                            {field.config?.options?.length ? field.config.options.map((opt: any) => (
-                                <div key={opt.id} className="flex items-center gap-2">
-                                    <div className="w-4 h-4 rounded border border-[rgba(255,255,255,0.3)]" />
-                                    <span style={inputStyle}>{opt.label}</span>
-                                </div>
-                            )) : (
+                        <div className={`flex flex-col gap-3 ${!isPreview && 'pointer-events-none'}`}>
+                            {field.config?.options?.length ? field.config.options.map((opt: any) => {
+                                const checkedValues = Array.isArray(previewValue) ? previewValue : [];
+                                const isChecked = checkedValues.includes(opt.value);
+                                return (
+                                    <label key={opt.id} className={`flex items-center gap-2 ${isPreview && 'cursor-pointer'}`}>
+                                        <input 
+                                            type="checkbox"
+                                            checked={isChecked}
+                                            onChange={(e) => {
+                                                if (!isPreview) return;
+                                                if (e.target.checked) {
+                                                    onPreviewChange([...checkedValues, opt.value]);
+                                                } else {
+                                                    onPreviewChange(checkedValues.filter((v: string) => v !== opt.value));
+                                                }
+                                            }}
+                                            className={isPreview ? "cursor-pointer" : ""}
+                                            disabled={!isPreview}
+                                        />
+                                        <span style={inputStyle}>{opt.label}</span>
+                                    </label>
+                                );
+                            }) : (
                                 <div className="flex items-center gap-2">
                                     <div className="w-4 h-4 rounded border border-[rgba(255,255,255,0.3)]" />
                                     <span style={inputStyle}>Option 1</span>
@@ -199,29 +248,55 @@ function CanvasField({ field, isSelected, onSelect, onRemove, isPreview }: any) 
                             )}
                         </div>
                     ) : field.type === 'checkbox' ? (
-                        <div className="flex items-center gap-2 pointer-events-none">
-                            <div className={`w-4 h-4 rounded border ${field.config?.validation?.defaultValue ? 'border-[#D93025] bg-[#D93025]' : 'border-[rgba(255,255,255,0.3)]'}`} />
+                        <label className={`flex items-center gap-2 ${isPreview ? 'cursor-pointer' : 'pointer-events-none'}`}>
+                            <input 
+                                type="checkbox"
+                                checked={previewValue || false}
+                                onChange={(e) => isPreview && onPreviewChange(e.target.checked)}
+                                className={isPreview ? "cursor-pointer" : ""}
+                                disabled={!isPreview}
+                            />
                             <span style={inputStyle}>{field.placeholder || "Check me"}</span>
-                        </div>
+                        </label>
                     ) : field.type === 'yes_no' ? (
-                        <div className={`flex ${field.config?.layout === 'horizontal' ? 'flex-row gap-4' : 'flex-col gap-2'} pointer-events-none`}>
-                            <div className="px-4 py-2 rounded-md border border-[rgba(255,255,255,0.1)] bg-[rgba(255,255,255,0.02)] flex items-center gap-2">
-                                <div className="w-4 h-4 rounded-full border border-[rgba(255,255,255,0.3)]" />
-                                <span style={inputStyle}>{field.config?.yesLabel || "Yes"}</span>
-                            </div>
-                            <div className="px-4 py-2 rounded-md border border-[rgba(255,255,255,0.1)] bg-[rgba(255,255,255,0.02)] flex items-center gap-2">
-                                <div className="w-4 h-4 rounded-full border border-[rgba(255,255,255,0.3)]" />
-                                <span style={inputStyle}>{field.config?.noLabel || "No"}</span>
-                            </div>
+                        <div className={`flex ${field.config?.layout === 'horizontal' ? 'flex-row gap-4' : 'flex-col gap-2'} ${!isPreview && 'pointer-events-none'}`}>
+                            <label className={`px-4 py-2 rounded-md border flex items-center gap-2 ${isPreview ? 'cursor-pointer transition-colors' : ''} ${previewValue === (field.config?.yesLabel || 'Yes') ? 'border-[#D93025] bg-[rgba(217,48,37,0.1)]' : 'border-[rgba(255,255,255,0.1)] bg-[rgba(255,255,255,0.02)]'}`}>
+                                <input 
+                                    type="radio"
+                                    name={`yesno-${field.id}`}
+                                    value={field.config?.yesLabel || "Yes"}
+                                    checked={previewValue === (field.config?.yesLabel || "Yes")}
+                                    onChange={(e) => isPreview && onPreviewChange(e.target.value)}
+                                    className="hidden"
+                                    disabled={!isPreview}
+                                />
+                                <div className={`w-4 h-4 rounded-full border ${previewValue === (field.config?.yesLabel || 'Yes') ? 'border-[#D93025] border-4' : 'border-[rgba(255,255,255,0.3)]'}`} />
+                                <span style={inputStyle} className={previewValue === (field.config?.yesLabel || 'Yes') ? 'text-white' : ''}>{field.config?.yesLabel || "Yes"}</span>
+                            </label>
+                            <label className={`px-4 py-2 rounded-md border flex items-center gap-2 ${isPreview ? 'cursor-pointer transition-colors' : ''} ${previewValue === (field.config?.noLabel || 'No') ? 'border-[#D93025] bg-[rgba(217,48,37,0.1)]' : 'border-[rgba(255,255,255,0.1)] bg-[rgba(255,255,255,0.02)]'}`}>
+                                <input 
+                                    type="radio"
+                                    name={`yesno-${field.id}`}
+                                    value={field.config?.noLabel || "No"}
+                                    checked={previewValue === (field.config?.noLabel || "No")}
+                                    onChange={(e) => isPreview && onPreviewChange(e.target.value)}
+                                    className="hidden"
+                                    disabled={!isPreview}
+                                />
+                                <div className={`w-4 h-4 rounded-full border ${previewValue === (field.config?.noLabel || 'No') ? 'border-[#D93025] border-4' : 'border-[rgba(255,255,255,0.3)]'}`} />
+                                <span style={inputStyle} className={previewValue === (field.config?.noLabel || 'No') ? 'text-white' : ''}>{field.config?.noLabel || "No"}</span>
+                            </label>
                         </div>
                     ) : (
                         <input 
                             type={field.type === 'password' ? 'password' : 'text'}
-                            className={`w-full bg-[rgba(255,255,255,0.04)] border border-[rgba(255,255,255,0.07)] rounded-md p-3 focus:outline-none pointer-events-none preview-input-${field.id}`}
+                            className={`w-full bg-[rgba(255,255,255,0.04)] border border-[rgba(255,255,255,0.07)] rounded-md p-3 focus:outline-none preview-input-${field.id} ${isPreview ? 'focus:border-[rgba(255,255,255,0.2)] text-white' : 'pointer-events-none'}`}
                             placeholder={field.placeholder || "Placeholder..."}
                             style={inputStyle}
-                            readOnly
-                            tabIndex={-1}
+                            readOnly={!isPreview}
+                            tabIndex={isPreview ? 0 : -1}
+                            value={isPreview ? previewValue || '' : ''}
+                            onChange={(e) => isPreview && onPreviewChange(e.target.value)}
                         />
                     )}
                 </div>
@@ -258,7 +333,7 @@ function BottomDropZone() {
     );
 }
 
-function Canvas({ fields, selectedFieldId, onSelect, onRemove, isPreview, previewDevice, title, description }: any) {
+function Canvas({ fields, selectedFieldId, onSelect, onRemove, isPreview, previewDevice, title, description, previewValues, onPreviewValueChange }: any) {
     const { setNodeRef, isOver, over } = useDroppable({
         id: "canvas",
         disabled: isPreview
@@ -299,16 +374,26 @@ function Canvas({ fields, selectedFieldId, onSelect, onRemove, isPreview, previe
                         </div>
                     ) : (
                         <>
-                            {sortedFields.map(field => (
-                                <CanvasField 
-                                    key={field.id} 
-                                    field={field} 
-                                    isSelected={field.id === selectedFieldId} 
-                                    onSelect={onSelect}
-                                    onRemove={onRemove}
-                                    isPreview={isPreview}
-                                />
-                            ))}
+                            {sortedFields.map(field => {
+                                // Evaluate logic in preview mode
+                                if (isPreview) {
+                                    const isVisible = evaluateLogic(field.config?.logic, previewValues);
+                                    if (!isVisible) return null;
+                                }
+
+                                return (
+                                    <CanvasField 
+                                        key={field.id} 
+                                        field={field} 
+                                        isSelected={field.id === selectedFieldId} 
+                                        onSelect={onSelect}
+                                        onRemove={onRemove}
+                                        isPreview={isPreview}
+                                        previewValue={previewValues?.[field.id]}
+                                        onPreviewChange={(val: any) => onPreviewValueChange(field.id, val)}
+                                    />
+                                );
+                            })}
                             {!isPreview && <BottomDropZone />}
                         </>
                     )}
@@ -332,6 +417,11 @@ export default function FormBuilderPage() {
     const [activeId, setActiveId] = React.useState<string | null>(null);
     const [isPreviewMode, setIsPreviewMode] = React.useState(searchParams.get("preview") === "true");
     const [previewDevice, setPreviewDevice] = React.useState<'desktop' | 'tablet' | 'mobile'>('desktop');
+    const [previewValues, setPreviewValues] = React.useState<Record<string, any>>({});
+
+    const handlePreviewValueChange = (fieldId: string, value: any) => {
+        setPreviewValues(prev => ({ ...prev, [fieldId]: value }));
+    };
 
     const sensors = useSensors(
         useSensor(PointerSensor, {
@@ -397,6 +487,8 @@ export default function FormBuilderPage() {
             if (store.isDirty) {
                 await store.tracker?.forceSave();
             }
+            // Clear old preview values
+            setPreviewValues({});
         }
         setIsPreviewMode(!isPreviewMode);
         store.selectField(null); // Deselect field
@@ -597,6 +689,8 @@ export default function FormBuilderPage() {
                         previewDevice={previewDevice}
                         title={store.title}
                         description={store.description}
+                        previewValues={previewValues}
+                        onPreviewValueChange={handlePreviewValueChange}
                     />
 
                     {/* Right Panel */}

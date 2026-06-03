@@ -7,6 +7,7 @@ import { NumberInputSetting } from "../controls/NumberInputSetting";
 import { ToggleSetting } from "../controls/ToggleSetting";
 import { SelectSetting } from "../controls/SelectSetting";
 import { OptionListSetting } from "../controls/OptionListSetting";
+import { LogicSetting } from "../controls/LogicSetting";
 
 interface SettingsTabProps {
     selectedField: FormBuilderField;
@@ -115,6 +116,11 @@ export function SettingsTab({ selectedField }: SettingsTabProps) {
                     {specificSettings.map(renderControl)}
                 </div>
             )}
+
+            {/* Conditional Logic Section */}
+            <div className="flex flex-col gap-4 border-t border-[rgba(255,255,255,0.07)] pt-4">
+                <LogicSetting selectedField={selectedField} />
+            </div>
         </div>
     );
 }
