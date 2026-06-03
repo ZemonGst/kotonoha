@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { FormBuilderField, useFormBuilderStore } from "~/stores/formBuilderStore";
 import { FieldLogic, LogicRule, LogicOperator } from "~/lib/logic-evaluator";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "~/components/ui/select";
+import { HelpTooltip } from "~/components/ui/help-tooltip";
 import { Trash2, Plus } from "lucide-react";
 
 interface LogicSettingProps {
@@ -152,6 +153,11 @@ export function LogicSetting({ selectedField }: LogicSettingProps) {
                                     <SelectItem value="hide" className="cursor-pointer hover:bg-[rgba(255,255,255,0.05)] focus:bg-[rgba(255,255,255,0.05)] focus:text-white text-xs">Hide</SelectItem>
                                 </SelectContent>
                             </Select>
+                            <HelpTooltip content={
+                                currentLogic.action === 'show' 
+                                    ? "Field starts hidden.\nThe field becomes visible when the condition is true." 
+                                    : "Field starts visible.\nThe field becomes hidden when the condition is true."
+                            } />
                             <span className="text-xs text-[#8B8FA8]">this field if</span>
                             <Select 
                                 value={currentLogic.conditionType} 
@@ -182,48 +188,61 @@ export function LogicSetting({ selectedField }: LogicSettingProps) {
                                         </button>
                                     </div>
                                     
-                                    <Select 
-                                        value={rule.sourceFieldId} 
-                                        onValueChange={(val) => updateRule(rule.id, { sourceFieldId: val, value: '' })}
-                                    >
-                                        <SelectTrigger className="w-full bg-[rgba(255,255,255,0.04)] border-[rgba(255,255,255,0.07)] text-white hover:bg-[rgba(255,255,255,0.08)] cursor-pointer outline-none focus:ring-1 focus:ring-[#D93025] focus:border-[#D93025] h-9 text-xs">
-                                            <SelectValue placeholder="Select field..." />
-                                        </SelectTrigger>
-                                        <SelectContent className="bg-[#131422] border-[rgba(255,255,255,0.1)] text-white">
-                                            {allFields.length === 0 && <SelectItem value="none" disabled className="text-xs">No other fields available</SelectItem>}
-                                            {allFields.map(f => (
-                                                <SelectItem 
-                                                    key={f.id} 
-                                                    value={f.id} 
-                                                    className="cursor-pointer hover:bg-[rgba(255,255,255,0.05)] focus:bg-[rgba(255,255,255,0.05)] focus:text-white text-xs"
-                                                >
-                                                    {f.label || 'Untitled Field'}
-                                                </SelectItem>
-                                            ))}
-                                        </SelectContent>
-                                    </Select>
+                                    <div className="flex items-center gap-2">
+                                        <Select 
+                                            value={rule.sourceFieldId} 
+                                            onValueChange={(val) => updateRule(rule.id, { sourceFieldId: val, value: '' })}
+                                        >
+                                            <SelectTrigger className="w-full bg-[rgba(255,255,255,0.04)] border-[rgba(255,255,255,0.07)] text-white hover:bg-[rgba(255,255,255,0.08)] cursor-pointer outline-none focus:ring-1 focus:ring-[#D93025] focus:border-[#D93025] h-9 text-xs">
+                                                <SelectValue placeholder="Select field..." />
+                                            </SelectTrigger>
+                                            <SelectContent className="bg-[#131422] border-[rgba(255,255,255,0.1)] text-white">
+                                                {allFields.length === 0 && <SelectItem value="none" disabled className="text-xs">No other fields available</SelectItem>}
+                                                {allFields.map(f => (
+                                                    <SelectItem 
+                                                        key={f.id} 
+                                                        value={f.id} 
+                                                        className="cursor-pointer hover:bg-[rgba(255,255,255,0.05)] focus:bg-[rgba(255,255,255,0.05)] focus:text-white text-xs"
+                                                    >
+                                                        {f.label || 'Untitled Field'}
+                                                    </SelectItem>
+                                                ))}
+                                            </SelectContent>
+                                        </Select>
+                                        <HelpTooltip content="The field whose value will be used to evaluate the condition." />
+                                    </div>
 
-                                    <Select 
-                                        value={rule.operator} 
-                                        onValueChange={(val: any) => updateRule(rule.id, { operator: val, value: '' })}
-                                    >
-                                        <SelectTrigger className="w-full bg-[rgba(255,255,255,0.04)] border-[rgba(255,255,255,0.07)] text-white hover:bg-[rgba(255,255,255,0.08)] cursor-pointer outline-none focus:ring-1 focus:ring-[#D93025] focus:border-[#D93025] h-9 text-xs">
-                                            <SelectValue placeholder="Select operator..." />
-                                        </SelectTrigger>
-                                        <SelectContent className="bg-[#131422] border-[rgba(255,255,255,0.1)] text-white">
-                                            {OPERATORS.map(op => (
-                                                <SelectItem 
-                                                    key={op.value} 
-                                                    value={op.value} 
-                                                    className="cursor-pointer hover:bg-[rgba(255,255,255,0.05)] focus:bg-[rgba(255,255,255,0.05)] focus:text-white text-xs"
-                                                >
-                                                    {op.label}
-                                                </SelectItem>
-                                            ))}
-                                        </SelectContent>
-                                    </Select>
+                                    <div className="flex items-center gap-2">
+                                        <Select 
+                                            value={rule.operator} 
+                                            onValueChange={(val: any) => updateRule(rule.id, { operator: val, value: '' })}
+                                        >
+                                            <SelectTrigger className="w-full bg-[rgba(255,255,255,0.04)] border-[rgba(255,255,255,0.07)] text-white hover:bg-[rgba(255,255,255,0.08)] cursor-pointer outline-none focus:ring-1 focus:ring-[#D93025] focus:border-[#D93025] h-9 text-xs">
+                                                <SelectValue placeholder="Select operator..." />
+                                            </SelectTrigger>
+                                            <SelectContent className="bg-[#131422] border-[rgba(255,255,255,0.1)] text-white">
+                                                {OPERATORS.map(op => (
+                                                    <SelectItem 
+                                                        key={op.value} 
+                                                        value={op.value} 
+                                                        className="cursor-pointer hover:bg-[rgba(255,255,255,0.05)] focus:bg-[rgba(255,255,255,0.05)] focus:text-white text-xs"
+                                                    >
+                                                        {op.label}
+                                                    </SelectItem>
+                                                ))}
+                                            </SelectContent>
+                                        </Select>
+                                        <HelpTooltip content="Determines how the selected value is compared." />
+                                    </div>
 
-                                    {renderValueInput(rule)}
+                                    <div className="flex items-center gap-2">
+                                        <div className="flex-1">
+                                            {renderValueInput(rule)}
+                                        </div>
+                                        {rule.operator !== 'is_empty' && rule.operator !== 'is_not_empty' && (
+                                            <HelpTooltip content="The value that must match for the condition to be triggered." />
+                                        )}
+                                    </div>
                                 </div>
                             ))}
                         </div>
