@@ -139,7 +139,7 @@ function CanvasField({ field, isSelected, onSelect, onRemove, isPreview, preview
                         font-weight: ${placeholderStyle.fontWeight || 'inherit'} !important;
                         font-style: ${placeholderStyle.fontStyle || 'inherit'} !important;
                         text-decoration: ${placeholderStyle.textDecoration || 'inherit'} !important;
-                        color: ${placeholderStyle.color || 'inherit'} !important;
+                        color: ${placeholderStyle.color || '#8B8FA8'} !important;
                     }
                 `}</style>
                 <div className="flex flex-col">
@@ -208,12 +208,12 @@ function CanvasField({ field, isSelected, onSelect, onRemove, isPreview, preview
                                         className={isPreview ? "cursor-pointer" : ""}
                                         disabled={!isPreview}
                                     />
-                                    <span style={inputStyle}>{opt.label}</span>
+                                    <span style={inputStyle} className={!inputStyle.color ? "text-white" : ""}>{opt.label}</span>
                                 </label>
                             )) : (
                                 <div className="flex items-center gap-2">
                                     <div className="w-4 h-4 rounded-full border border-[rgba(255,255,255,0.3)]" />
-                                    <span style={inputStyle}>Option 1</span>
+                                    <span style={inputStyle} className={!inputStyle.color ? "text-white" : ""}>Option 1</span>
                                 </div>
                             )}
                         </div>
@@ -238,13 +238,13 @@ function CanvasField({ field, isSelected, onSelect, onRemove, isPreview, preview
                                             className={isPreview ? "cursor-pointer" : ""}
                                             disabled={!isPreview}
                                         />
-                                        <span style={inputStyle}>{opt.label}</span>
+                                        <span style={inputStyle} className={!inputStyle.color ? "text-white" : ""}>{opt.label}</span>
                                     </label>
                                 );
                             }) : (
                                 <div className="flex items-center gap-2">
                                     <div className="w-4 h-4 rounded border border-[rgba(255,255,255,0.3)]" />
-                                    <span style={inputStyle}>Option 1</span>
+                                    <span style={inputStyle} className={!inputStyle.color ? "text-white" : ""}>Option 1</span>
                                 </div>
                             )}
                         </div>
@@ -257,7 +257,7 @@ function CanvasField({ field, isSelected, onSelect, onRemove, isPreview, preview
                                 className={isPreview ? "cursor-pointer" : ""}
                                 disabled={!isPreview}
                             />
-                            <span style={inputStyle}>{field.placeholder || "Check me"}</span>
+                            <span style={inputStyle} className={!inputStyle.color ? "text-white" : ""}>{field.placeholder || "Check me"}</span>
                         </label>
                     ) : field.type === 'yes_no' ? (
                         <div className={`flex ${field.config?.layout === 'horizontal' ? 'flex-row gap-4' : 'flex-col gap-2'} ${!isPreview && 'pointer-events-none'}`}>
@@ -272,7 +272,7 @@ function CanvasField({ field, isSelected, onSelect, onRemove, isPreview, preview
                                     disabled={!isPreview}
                                 />
                                 <div className={`w-4 h-4 rounded-full border ${previewValue === (field.config?.yesLabel || 'Yes') ? 'border-[#D93025] border-4' : 'border-[rgba(255,255,255,0.3)]'}`} />
-                                <span style={inputStyle} className={previewValue === (field.config?.yesLabel || 'Yes') ? 'text-white' : ''}>{field.config?.yesLabel || "Yes"}</span>
+                                <span style={inputStyle} className={previewValue === (field.config?.yesLabel || 'Yes') ? 'text-white' : (!inputStyle.color ? 'text-[#8B8FA8]' : '')}>{field.config?.yesLabel || "Yes"}</span>
                             </label>
                             <label className={`px-4 py-2 rounded-md border flex items-center gap-2 ${isPreview ? 'cursor-pointer transition-colors' : ''} ${previewValue === (field.config?.noLabel || 'No') ? 'border-[#D93025] bg-[rgba(217,48,37,0.1)]' : 'border-[rgba(255,255,255,0.1)] bg-[rgba(255,255,255,0.02)]'}`}>
                                 <input 
@@ -285,7 +285,7 @@ function CanvasField({ field, isSelected, onSelect, onRemove, isPreview, preview
                                     disabled={!isPreview}
                                 />
                                 <div className={`w-4 h-4 rounded-full border ${previewValue === (field.config?.noLabel || 'No') ? 'border-[#D93025] border-4' : 'border-[rgba(255,255,255,0.3)]'}`} />
-                                <span style={inputStyle} className={previewValue === (field.config?.noLabel || 'No') ? 'text-white' : ''}>{field.config?.noLabel || "No"}</span>
+                                <span style={inputStyle} className={previewValue === (field.config?.noLabel || 'No') ? 'text-white' : (!inputStyle.color ? 'text-[#8B8FA8]' : '')}>{field.config?.noLabel || "No"}</span>
                             </label>
                         </div>
                     ) : (

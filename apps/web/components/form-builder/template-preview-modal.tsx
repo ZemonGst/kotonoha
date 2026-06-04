@@ -36,6 +36,11 @@ export function TemplatePreviewModal({ templateId, open, onOpenChange }: Templat
     const { previewData, isLoading, isError } = useGetTemplatePreview(templateId);
     const { cloneTemplateAsync, isPending: isCloning } = useCloneTemplate();
     const router = useRouter();
+    const [previewValues, setPreviewValues] = useState<Record<string, any>>({});
+
+    const handlePreviewValueChange = (fieldId: string, value: any) => {
+        setPreviewValues(prev => ({ ...prev, [fieldId]: value }));
+    };
 
     const handleUseTemplate = async () => {
         if (!templateId) return;
@@ -141,54 +146,121 @@ export function TemplatePreviewModal({ templateId, open, onOpenChange }: Templat
                                             )}
                                         </div>
                                         
-                                        <div className="ml-6 opacity-60 pointer-events-none">
+                                        <div className="ml-6">
                                             {['text', 'number', 'email', 'phone', 'password', 'date', 'time', 'datetime'].includes(field.type) && (
-                                                <div className="w-full bg-[rgba(255,255,255,0.04)] border border-[rgba(255,255,255,0.07)] rounded-md p-3 h-11 text-sm text-[#8B8FA8] flex items-center">
-                                                    {field.placeholder || "Enter value..."}
-                                                </div>
+                                                <input
+                                                    type={field.type === 'password' ? 'password' : field.type === 'number' ? 'number' : field.type === 'email' ? 'email' : 'text'}
+                                                    className="w-full bg-[rgba(255,255,255,0.04)] border border-[rgba(255,255,255,0.07)] rounded-md p-3 h-11 text-sm text-white placeholder:text-[#8B8FA8] focus:outline-none focus:border-[rgba(255,255,255,0.2)] transition-colors"
+                                                    placeholder={field.placeholder || "Enter value..."}
+                                                    value={previewValues[field.id] || ''}
+                                                    onChange={(e) => handlePreviewValueChange(field.id, e.target.value)}
+                                                />
                                             )}
                                             
                                             {field.type === 'textarea' && (
-                                                <div className="w-full bg-[rgba(255,255,255,0.04)] border border-[rgba(255,255,255,0.07)] rounded-md p-3 h-24 text-sm text-[#8B8FA8]">
-                                                    {field.placeholder || "Enter long text..."}
-                                                </div>
+                                                <textarea
+                                                    className="w-full bg-[rgba(255,255,255,0.04)] border border-[rgba(255,255,255,0.07)] rounded-md p-3 h-24 text-sm text-white placeholder:text-[#8B8FA8] focus:outline-none focus:border-[rgba(255,255,255,0.2)] transition-colors resize-none"
+                                                    placeholder={field.placeholder || "Enter long text..."}
+                                                    value={previewValues[field.id] || ''}
+                                                    onChange={(e) => handlePreviewValueChange(field.id, e.target.value)}
+                                                />
                                             )}
 
                                             {field.type === 'select' && (
-                                                <div className="w-full bg-[rgba(255,255,255,0.04)] border border-[rgba(255,255,255,0.07)] rounded-md p-3 h-11 text-sm text-[#8B8FA8] flex items-center justify-between">
-                                                    <span>{field.placeholder || "Select option..."}</span>
-                                                    <ChevronDown size={16} />
+                                                <div className="w-full bg-[rgba(255,255,255,0.04)] border border-[rgba(255,255,255,0.07)] rounded-md p-3 h-11 text-sm text-white hover:bg-[rgba(255,255,255,0.06)] focus-within:border-[rgba(255,255,255,0.2)] transition-colors flex items-center justify-between relative cursor-pointer">
+                                                    <select 
+                                                        className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                                                        value={previewValues[field.id] || ''}
+                                                        onChange={(e) => handlePreviewValueChange(field.id, e.target.value)}
+                                                    >
+                                                        <option value="" disabled>{field.placeholder || "Select option..."}</option>
+                                                        {((field.config as any)?.options || [{ value: '1', label: 'Option 1' }, { value: '2', label: 'Option 2' }]).map((opt: any) => (
+                                                            <option key={opt.value} value={opt.value}>{opt.label}</option>
+                                                        ))}
+                                                    </select>
+                                                    <span className={previewValues[field.id] ? "text-white" : "text-[#8B8FA8]"}>
+                                                        {previewValues[field.id] 
+                                                            ? (((field.config as any)?.options || [{ value: '1', label: 'Option 1' }, { value: '2', label: 'Option 2' }]).find((o: any) => o.value === previewValues[field.id])?.label || previewValues[field.id])
+                                                            : (field.placeholder || "Select option...")}
+                                                    </span>
+                                                    <ChevronDown size={16} className="text-[#8B8FA8]" />
                                                 </div>
                                             )}
 
                                             {(field.type === 'radio' || field.type === 'checkbox_group') && (
                                                 <div className="flex flex-col gap-3">
-                                                    {((field.config as any)?.options || [{ id: 1, label: 'Option 1' }, { id: 2, label: 'Option 2' }]).slice(0, 3).map((opt: any) => (
-                                                        <div key={opt.id} className="flex items-center gap-3">
-                                                            <div className={`w-4 h-4 rounded${field.type === 'radio' ? '-full' : ''} border border-[rgba(255,255,255,0.3)]`} />
-                                                            <span className="text-sm text-[#8B8FA8]">{opt.label}</span>
-                                                        </div>
-                                                    ))}
+                                                    {((field.config as any)?.options || [{ value: '1', label: 'Option 1' }, { value: '2', label: 'Option 2' }]).map((opt: any) => {
+                                                        const isRadio = field.type === 'radio';
+                                                        const checkedValues = Array.isArray(previewValues[field.id]) ? previewValues[field.id] : [];
+                                                        const isChecked = isRadio ? previewValues[field.id] === opt.value : checkedValues.includes(opt.value);
+                                                        
+                                                        return (
+                                                            <label key={opt.value} className="flex items-center gap-3 cursor-pointer group">
+                                                                <input
+                                                                    type={isRadio ? "radio" : "checkbox"}
+                                                                    name={`preview-${field.id}`}
+                                                                    value={opt.value}
+                                                                    checked={isChecked}
+                                                                    onChange={(e) => {
+                                                                        if (isRadio) {
+                                                                            handlePreviewValueChange(field.id, opt.value);
+                                                                        } else {
+                                                                            if (e.target.checked) {
+                                                                                handlePreviewValueChange(field.id, [...checkedValues, opt.value]);
+                                                                            } else {
+                                                                                handlePreviewValueChange(field.id, checkedValues.filter((v: string) => v !== opt.value));
+                                                                            }
+                                                                        }
+                                                                    }}
+                                                                    className="hidden"
+                                                                />
+                                                                <div className={`w-4 h-4 flex items-center justify-center border transition-colors ${isRadio ? 'rounded-full' : 'rounded'} ${isChecked ? 'border-[#D93025] bg-[rgba(217,48,37,0.1)]' : 'border-[rgba(255,255,255,0.3)] group-hover:border-[rgba(255,255,255,0.5)]'}`}>
+                                                                    {isChecked && isRadio && <div className="w-2 h-2 rounded-full bg-[#D93025]" />}
+                                                                    {isChecked && !isRadio && <CheckSquare size={12} className="text-[#D93025]" />}
+                                                                </div>
+                                                                <span className="text-sm text-white group-hover:text-[#A1A5B7] transition-colors">{opt.label}</span>
+                                                            </label>
+                                                        );
+                                                    })}
                                                 </div>
                                             )}
 
                                             {field.type === 'checkbox' && (
-                                                <div className="flex items-center gap-3">
-                                                    <div className="w-4 h-4 rounded border border-[rgba(255,255,255,0.3)]" />
-                                                    <span className="text-sm text-[#8B8FA8]">{field.placeholder || "Check here"}</span>
-                                                </div>
+                                                <label className="flex items-center gap-3 cursor-pointer group">
+                                                    <input
+                                                        type="checkbox"
+                                                        checked={previewValues[field.id] || false}
+                                                        onChange={(e) => handlePreviewValueChange(field.id, e.target.checked)}
+                                                        className="hidden"
+                                                    />
+                                                    <div className={`w-4 h-4 flex items-center justify-center border transition-colors rounded ${previewValues[field.id] ? 'border-[#D93025] bg-[rgba(217,48,37,0.1)]' : 'border-[rgba(255,255,255,0.3)] group-hover:border-[rgba(255,255,255,0.5)]'}`}>
+                                                        {previewValues[field.id] && <CheckSquare size={12} className="text-[#D93025]" />}
+                                                    </div>
+                                                    <span className="text-sm text-white group-hover:text-[#A1A5B7] transition-colors">{field.placeholder || "Check here"}</span>
+                                                </label>
                                             )}
                                             
                                             {field.type === 'yes_no' && (
                                                 <div className="flex gap-3">
-                                                    <div className="px-4 py-2 rounded-md border border-[rgba(255,255,255,0.1)] bg-[rgba(255,255,255,0.02)] flex items-center gap-2">
-                                                        <div className="w-4 h-4 rounded-full border border-[rgba(255,255,255,0.3)]" />
-                                                        <span className="text-sm text-[#8B8FA8]">Yes</span>
-                                                    </div>
-                                                    <div className="px-4 py-2 rounded-md border border-[rgba(255,255,255,0.1)] bg-[rgba(255,255,255,0.02)] flex items-center gap-2">
-                                                        <div className="w-4 h-4 rounded-full border border-[rgba(255,255,255,0.3)]" />
-                                                        <span className="text-sm text-[#8B8FA8]">No</span>
-                                                    </div>
+                                                    {['Yes', 'No'].map(opt => {
+                                                        const isChecked = previewValues[field.id] === opt;
+                                                        return (
+                                                            <label key={opt} className={`px-4 py-2 rounded-md border cursor-pointer transition-colors flex items-center gap-2 ${isChecked ? 'border-[#D93025] bg-[rgba(217,48,37,0.1)]' : 'border-[rgba(255,255,255,0.1)] bg-[rgba(255,255,255,0.02)] hover:border-[rgba(255,255,255,0.2)]'}`}>
+                                                                <input
+                                                                    type="radio"
+                                                                    name={`preview-${field.id}`}
+                                                                    value={opt}
+                                                                    checked={isChecked}
+                                                                    onChange={() => handlePreviewValueChange(field.id, opt)}
+                                                                    className="hidden"
+                                                                />
+                                                                <div className={`w-4 h-4 rounded-full border flex items-center justify-center ${isChecked ? 'border-[#D93025]' : 'border-[rgba(255,255,255,0.3)]'}`}>
+                                                                    {isChecked && <div className="w-2 h-2 rounded-full bg-[#D93025]" />}
+                                                                </div>
+                                                                <span className={`text-sm ${isChecked ? 'text-white' : 'text-[#8B8FA8]'}`}>{opt}</span>
+                                                            </label>
+                                                        );
+                                                    })}
                                                 </div>
                                             )}
                                         </div>

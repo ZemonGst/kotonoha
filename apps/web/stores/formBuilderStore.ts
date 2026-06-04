@@ -100,10 +100,28 @@ export const useFormBuilderStore = create<FormBuilderState>((set, get) => ({
         const lastField = fields[fields.length - 1];
         const newOrder = insertOrder !== undefined ? insertOrder : (lastField ? lastField.order + 1.0 : 1.0);
 
+        let defaultPlaceholder = "";
+        switch (type) {
+            case 'text': defaultPlaceholder = "Tell us about yourself"; break;
+            case 'email': defaultPlaceholder = "Enter your email address"; break;
+            case 'phone': defaultPlaceholder = "Enter your phone number"; break;
+            case 'number': defaultPlaceholder = "Enter a number"; break;
+            case 'date': defaultPlaceholder = "Select a date"; break;
+            case 'time': defaultPlaceholder = "Select a time"; break;
+            case 'textarea': defaultPlaceholder = "Write your response here"; break;
+            case 'password': defaultPlaceholder = "Enter your password"; break;
+            case 'select': defaultPlaceholder = "Select an option"; break;
+            case 'radio':
+            case 'checkbox_group': defaultPlaceholder = "Select your options"; break;
+            case 'checkbox': defaultPlaceholder = "Check this box if you agree"; break;
+            case 'yes_no': defaultPlaceholder = "Yes or No"; break;
+        }
+
         const newField: FormBuilderField = {
             id: tempId,
             type,
             label: defaultLabel,
+            placeholder: defaultPlaceholder,
             isRequired: false,
             order: newOrder,
             config: {},
