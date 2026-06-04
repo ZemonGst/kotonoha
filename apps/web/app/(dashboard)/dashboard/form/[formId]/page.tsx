@@ -190,25 +190,28 @@ function CanvasField({ field, isSelected, onSelect, onRemove, isPreview, preview
                                 </select>
                             ) : (
                                 <>
-                                    <span className="opacity-70">{field.placeholder || "Select option..."}</span>
-                                    <ChevronDown size={16} className="opacity-50" />
+                                    <span className={!inputStyle.color ? "text-[#8B8FA8]" : "opacity-70"}>{field.placeholder || "Select option..."}</span>
+                                    <ChevronDown size={16} className={!inputStyle.color ? "text-[#8B8FA8] opacity-50" : "opacity-50"} />
                                 </>
                             )}
                         </div>
                     ) : field.type === 'radio' ? (
                         <div className={`flex ${field.config?.layout === 'horizontal' ? 'flex-row gap-6' : 'flex-col gap-3'} ${!isPreview && 'pointer-events-none'}`}>
                             {field.config?.options?.length ? field.config.options.map((opt: any) => (
-                                <label key={opt.id} className={`flex items-center gap-2 ${isPreview && 'cursor-pointer'}`}>
+                                <label key={opt.id} className={`flex items-center gap-2 ${isPreview && 'cursor-pointer group'}`}>
                                     <input 
                                         type="radio" 
                                         name={`radio-${field.id}`}
                                         value={opt.value}
                                         checked={previewValue === opt.value}
                                         onChange={() => isPreview && onPreviewChange(opt.value)}
-                                        className={isPreview ? "cursor-pointer" : ""}
+                                        className="hidden"
                                         disabled={!isPreview}
                                     />
-                                    <span style={inputStyle} className={!inputStyle.color ? "text-white" : ""}>{opt.label}</span>
+                                    <div className={`w-4 h-4 flex items-center justify-center border transition-colors rounded-full ${previewValue === opt.value ? 'border-[#D93025] bg-[rgba(217,48,37,0.1)]' : 'border-[rgba(255,255,255,0.3)] group-hover:border-[rgba(255,255,255,0.5)]'}`}>
+                                        {previewValue === opt.value && <div className="w-2 h-2 rounded-full bg-[#D93025]" />}
+                                    </div>
+                                    <span style={inputStyle} className={!inputStyle.color ? "text-white group-hover:text-[#A1A5B7] transition-colors" : ""}>{opt.label}</span>
                                 </label>
                             )) : (
                                 <div className="flex items-center gap-2">
@@ -223,7 +226,7 @@ function CanvasField({ field, isSelected, onSelect, onRemove, isPreview, preview
                                 const checkedValues = Array.isArray(previewValue) ? previewValue : [];
                                 const isChecked = checkedValues.includes(opt.value);
                                 return (
-                                    <label key={opt.id} className={`flex items-center gap-2 ${isPreview && 'cursor-pointer'}`}>
+                                    <label key={opt.id} className={`flex items-center gap-2 ${isPreview && 'cursor-pointer group'}`}>
                                         <input 
                                             type="checkbox"
                                             checked={isChecked}
@@ -235,10 +238,13 @@ function CanvasField({ field, isSelected, onSelect, onRemove, isPreview, preview
                                                     onPreviewChange(checkedValues.filter((v: string) => v !== opt.value));
                                                 }
                                             }}
-                                            className={isPreview ? "cursor-pointer" : ""}
+                                            className="hidden"
                                             disabled={!isPreview}
                                         />
-                                        <span style={inputStyle} className={!inputStyle.color ? "text-white" : ""}>{opt.label}</span>
+                                        <div className={`w-4 h-4 flex items-center justify-center border transition-colors rounded ${isChecked ? 'border-[#D93025] bg-[rgba(217,48,37,0.1)]' : 'border-[rgba(255,255,255,0.3)] group-hover:border-[rgba(255,255,255,0.5)]'}`}>
+                                            {isChecked && <CheckSquare size={12} className="text-[#D93025]" />}
+                                        </div>
+                                        <span style={inputStyle} className={!inputStyle.color ? "text-white group-hover:text-[#A1A5B7] transition-colors" : ""}>{opt.label}</span>
                                     </label>
                                 );
                             }) : (
@@ -249,15 +255,18 @@ function CanvasField({ field, isSelected, onSelect, onRemove, isPreview, preview
                             )}
                         </div>
                     ) : field.type === 'checkbox' ? (
-                        <label className={`flex items-center gap-2 ${isPreview ? 'cursor-pointer' : 'pointer-events-none'}`}>
+                        <label className={`flex items-center gap-2 ${isPreview ? 'cursor-pointer group' : 'pointer-events-none'}`}>
                             <input 
                                 type="checkbox"
                                 checked={previewValue || false}
                                 onChange={(e) => isPreview && onPreviewChange(e.target.checked)}
-                                className={isPreview ? "cursor-pointer" : ""}
+                                className="hidden"
                                 disabled={!isPreview}
                             />
-                            <span style={inputStyle} className={!inputStyle.color ? "text-white" : ""}>{field.placeholder || "Check me"}</span>
+                            <div className={`w-4 h-4 flex items-center justify-center border transition-colors rounded ${(previewValue || false) ? 'border-[#D93025] bg-[rgba(217,48,37,0.1)]' : 'border-[rgba(255,255,255,0.3)] group-hover:border-[rgba(255,255,255,0.5)]'}`}>
+                                {(previewValue || false) && <CheckSquare size={12} className="text-[#D93025]" />}
+                            </div>
+                            <span style={inputStyle} className={!inputStyle.color ? "text-white group-hover:text-[#A1A5B7] transition-colors" : ""}>{field.placeholder || "Check me"}</span>
                         </label>
                     ) : field.type === 'yes_no' ? (
                         <div className={`flex ${field.config?.layout === 'horizontal' ? 'flex-row gap-4' : 'flex-col gap-2'} ${!isPreview && 'pointer-events-none'}`}>
