@@ -57,6 +57,13 @@
       "when": 1780498767241,
       "tag": "0007_smooth_secret_warriors",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1780578552225,
+      "tag": "0008_whole_karma",
+      "breakpoints": true
     }
   ]
 }

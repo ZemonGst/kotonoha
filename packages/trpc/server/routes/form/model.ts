@@ -57,6 +57,7 @@ export const formFieldTypes = [
     "date",
     "time",
     "datetime",
+    "rating",
 ] as const;
 
 const formFieldBaseSchema = z.object({

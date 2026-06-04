@@ -89,6 +89,7 @@ export const formFieldTypes = [
     "date",
     "time",
     "datetime",
+    "rating",
 ] as const;
 
 // Shared base schema for common form field properties

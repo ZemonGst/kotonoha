@@ -7,7 +7,7 @@ import {
     ArrowLeft, Loader2, AlertTriangle, Type, AlignLeft, Hash, Mail, 
     Phone, ChevronDown, Circle, CheckSquare, ToggleLeft, Calendar, 
     Clock, CalendarClock, Lock, GripVertical, Trash2, Settings,
-    Eye, Monitor, Tablet, Smartphone, GitBranch
+    Eye, Monitor, Tablet, Smartphone, GitBranch, Star
 } from "lucide-react";
 import { useGetFormById, useGetFields, useSaveDelta, useUpdateForm } from "~/hooks/form";
 import { useCloneTemplate } from "~/hooks/default-template";
@@ -40,6 +40,7 @@ const fieldTypes = [
     { type: "time", label: "Time", icon: Clock },
     { type: "datetime", label: "Date & Time", icon: CalendarClock },
     { type: "password", label: "Password", icon: Lock },
+    { type: "rating", label: "Rating", icon: Star },
 ];
 
 function SidebarField({ type, label, icon: Icon }: any) {
@@ -296,6 +297,25 @@ function CanvasField({ field, isSelected, onSelect, onRemove, isPreview, preview
                                 <div className={`w-4 h-4 rounded-full border ${previewValue === (field.config?.noLabel || 'No') ? 'border-[#D93025] border-4' : 'border-[rgba(255,255,255,0.3)]'}`} />
                                 <span style={inputStyle} className={previewValue === (field.config?.noLabel || 'No') ? 'text-white' : (!inputStyle.color ? 'text-[#8B8FA8]' : '')}>{field.config?.noLabel || "No"}</span>
                             </label>
+                        </div>
+                    ) : field.type === 'rating' ? (
+                        <div className={`flex items-center gap-1 ${!isPreview && 'pointer-events-none'}`}>
+                            {Array.from({ length: field.config?.maxStars || 5 }).map((_, i) => {
+                                const starValue = i + 1;
+                                const isFilled = previewValue ? starValue <= previewValue : false;
+                                return (
+                                    <button
+                                        key={i}
+                                        onClick={(e) => {
+                                            e.preventDefault();
+                                            if (isPreview) onPreviewChange(starValue);
+                                        }}
+                                        className={`p-1 transition-colors ${isPreview ? 'cursor-pointer hover:scale-110' : ''} ${isFilled ? 'text-yellow-400' : 'text-[rgba(255,255,255,0.2)] hover:text-[rgba(255,255,255,0.4)]'}`}
+                                    >
+                                        <Star size={24} fill={isFilled ? 'currentColor' : 'transparent'} />
+                                    </button>
+                                );
+                            })}
                         </div>
                     ) : (
                         <input 

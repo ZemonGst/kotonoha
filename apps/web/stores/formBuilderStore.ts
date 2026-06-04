@@ -115,6 +115,7 @@ export const useFormBuilderStore = create<FormBuilderState>((set, get) => ({
             case 'checkbox_group': defaultPlaceholder = "Select your options"; break;
             case 'checkbox': defaultPlaceholder = "Check this box if you agree"; break;
             case 'yes_no': defaultPlaceholder = "Yes or No"; break;
+            case 'rating': defaultPlaceholder = "Rate out of 5 stars"; break;
         }
 
         const newField: FormBuilderField = {
