@@ -67,9 +67,9 @@ export default function DraftsPage() {
                         <Loader2 className="animate-spin text-[#D93025]" size={24} />
                     </div>
                 ) : (
-                    <div className="flex gap-4 overflow-x-auto pb-4 scrollbar-thin scrollbar-thumb-[rgba(255,255,255,0.1)] scrollbar-track-transparent">
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 pb-2">
                         <div 
-                            className={`shrink-0 w-64 h-36 rounded-xl border border-dashed border-[rgba(255,255,255,0.15)] bg-[rgba(255,255,255,0.02)] flex flex-col items-center justify-center gap-3 hover:bg-[rgba(217,48,37,0.05)] hover:border-[rgba(217,48,37,0.3)] transition-all cursor-pointer group ${isCreatePending ? 'opacity-50 pointer-events-none' : ''}`}
+                            className={`w-full min-h-[160px] rounded-xl border border-dashed border-[rgba(255,255,255,0.15)] bg-[rgba(255,255,255,0.02)] flex flex-col items-center justify-center gap-4 hover:bg-[rgba(217,48,37,0.05)] hover:border-[rgba(217,48,37,0.3)] transition-all cursor-pointer group ${isCreatePending ? 'opacity-50 pointer-events-none' : ''}`}
                             onClick={async () => {
                                 if (isCreatePending) return;
                                 try {
@@ -82,25 +82,25 @@ export default function DraftsPage() {
                                 }
                             }}
                         >
-                            <div className="w-10 h-10 rounded-full bg-[rgba(255,255,255,0.05)] flex items-center justify-center group-hover:bg-[#D93025] group-hover:text-white transition-all text-[#A1A5B7]">
-                                <Plus size={20} />
+                            <div className="w-12 h-12 rounded-full bg-[rgba(255,255,255,0.05)] flex items-center justify-center group-hover:bg-[rgba(217,48,37,0.1)] transition-colors">
+                                <Plus size={24} className="text-[#A1A5B7] group-hover:text-[#D93025] transition-colors" />
                             </div>
-                            <span className="text-sm font-medium text-white">Start from scratch</span>
+                            <span className="text-base font-medium text-white group-hover:text-[#D93025] transition-colors">Start from scratch</span>
                         </div>
                         
                         {templates?.map(template => (
                             <div 
                                 key={template.id}
                                 onClick={() => handleTemplateClick(template)}
-                                className="shrink-0 w-64 h-36 rounded-xl border border-[rgba(255,255,255,0.08)] bg-[#0C0D18] p-4 flex flex-col hover:bg-[#131422] hover:border-[rgba(217,48,37,0.3)] hover:shadow-[0_8px_30px_rgb(0,0,0,0.12)] transition-all cursor-pointer group relative overflow-hidden"
+                                className="w-full min-h-[160px] rounded-xl border border-[rgba(255,255,255,0.08)] bg-[#0C0D18] p-5 flex flex-col hover:bg-[#131422] hover:border-[rgba(255,255,255,0.15)] hover:shadow-[0_8px_30px_rgb(0,0,0,0.12)] transition-all cursor-pointer group relative overflow-hidden"
                             >
                                 <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-bl from-[rgba(217,48,37,0.1)] to-transparent opacity-0 group-hover:opacity-100 transition-opacity rounded-bl-3xl" />
-                                <div className="flex-1">
-                                    <h3 className="text-base font-semibold text-white mb-1.5 line-clamp-1">{template.name}</h3>
-                                    <p className="text-xs text-[#8B8FA8] line-clamp-2 leading-relaxed">{template.description}</p>
+                                <div className="flex-1 relative z-10">
+                                    <h3 className="text-base font-semibold text-white mb-2 line-clamp-1 group-hover:text-[#D93025] transition-colors">{template.name}</h3>
+                                    <p className="text-sm text-[#A1A5B7] line-clamp-2 leading-relaxed">{template.description}</p>
                                 </div>
-                                <div className="mt-auto flex items-center justify-between relative z-10">
-                                    <span className="text-[10px] font-semibold tracking-wider uppercase text-[#D93025]">{template.category || "General"}</span>
+                                <div className="mt-auto flex items-center justify-between relative z-10 pt-4 border-t border-[rgba(255,255,255,0.06)]">
+                                    <span className="text-[11px] font-semibold tracking-wider uppercase text-[#D93025]">{template.category || "General"}</span>
                                     <button 
                                         onClick={async (e) => {
                                             e.stopPropagation();
@@ -113,7 +113,7 @@ export default function DraftsPage() {
                                             }
                                         }}
                                         disabled={isCloning}
-                                        className="opacity-0 group-hover:opacity-100 transition-opacity bg-[#D93025] hover:bg-[#b8271e] text-white text-[10px] font-medium px-2.5 py-1.5 rounded flex items-center gap-1 shadow-md shadow-[rgba(217,48,37,0.2)] disabled:pointer-events-none"
+                                        className="opacity-0 group-hover:opacity-100 transition-opacity bg-[#D93025] hover:bg-[#b8271e] text-white text-[11px] font-medium px-3 py-1.5 rounded flex items-center gap-1 shadow-md shadow-[rgba(217,48,37,0.2)] disabled:pointer-events-none"
                                     >
                                         Use Template
                                     </button>

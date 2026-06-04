@@ -33,33 +33,33 @@ export const useGetMe = () => {
 export const useLogout = () => {
     const router = useRouter();
 
-    const {
-        mutateAsync: logoutAsync,
-        mutate: logout,
-        error,
-        isError,
-        isPending,
-        failureCount,
-        isIdle,
-        isSuccess,
-        variables,
-        status,
-    } = trpc.auth.logout.useMutation({
+    const mutation = trpc.auth.logout.useMutation({
+        retry: trpcAuthRetry,
         onSuccess: () => {
             router.push("/login");
         },
     });
 
+    const refetch = () => {
+        mutation.mutate();
+    };
+
+    useAuthErrorInterceptor({
+        isError: mutation.isError,
+        error: mutation.error,
+        refetch
+    });
+
     return {
-        logoutAsync,
-        logout,
-        error,
-        isError,
-        isPending,
-        failureCount,
-        isIdle,
-        isSuccess,
-        variables,
-        status,
+        logoutAsync: mutation.mutateAsync,
+        logout: mutation.mutate,
+        error: mutation.error,
+        isError: mutation.isError,
+        isPending: mutation.isPending,
+        failureCount: mutation.failureCount,
+        isIdle: mutation.isIdle,
+        isSuccess: mutation.isSuccess,
+        variables: mutation.variables,
+        status: mutation.status,
     };
 };
