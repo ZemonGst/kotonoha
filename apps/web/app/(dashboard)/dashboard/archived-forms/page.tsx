@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+import Link from "next/link";
 import { formatDistanceToNow } from "date-fns";
 import { Archive, FileIcon, Loader2 } from "lucide-react";
 import { useGetAllForms } from "~/hooks/draft";
@@ -32,7 +33,7 @@ export default function ArchivedFormsPage() {
                     {forms.map(form => (
                         <div 
                             key={form.id} 
-                            className="group relative flex flex-col rounded-xl border border-[rgba(255,255,255,0.08)] bg-[#0C0D18] p-5 hover:bg-[#131422] hover:border-[rgba(255,255,255,0.15)] transition-all duration-300"
+                            className="group relative flex flex-col rounded-xl border border-[rgba(255,255,255,0.08)] bg-[#0C0D18] p-5 hover:bg-[#131422] hover:border-[rgba(255,255,255,0.15)] transition-all duration-300 hover:shadow-[0_8px_30px_rgb(0,0,0,0.12)] cursor-pointer"
                         >
                             <div className="flex items-start justify-between mb-4">
                                 <div className="w-10 h-10 rounded-lg bg-[rgba(255,255,255,0.05)] flex items-center justify-center shrink-0">
@@ -45,7 +46,9 @@ export default function ArchivedFormsPage() {
                                 </div>
                             </div>
                             
-                            <div className="flex flex-col flex-1">
+                            <Link href={`/dashboard/responses?formId=${form.id}`} className="absolute inset-0 z-0" aria-label={`View responses for ${form.title}`} />
+                            
+                            <div className="flex flex-col flex-1 relative z-0 pointer-events-none">
                                 <h3 className="text-base font-semibold text-white mb-2 line-clamp-1 group-hover:text-[#D93025] transition-colors">
                                     {form.title}
                                 </h3>

@@ -2,7 +2,9 @@
 
 import { useState, useRef, useEffect } from "react";
 import { useGetMe, useLogout } from "~/hooks/api/dashboard";
-import { LogOut } from "lucide-react";
+import { LogOut, FileIcon, Search, FileEdit, Archive, Send } from "lucide-react";
+import { useGetAllForms } from "~/hooks/draft";
+import { useRouter } from "next/navigation";
 
 import "~/components/dashboard/dashboard.css";
 
@@ -27,28 +29,97 @@ export function Topbar({ title = "Dashboard" }: TopbarProps) {
     const [dropdownOpen, setDropdownOpen] = useState(false);
     const dropdownRef = useRef<HTMLDivElement>(null);
 
-    // Close dropdown when clicking outside
+    // Search functionality
+    const { forms } = useGetAllForms();
+    const [searchQuery, setSearchQuery] = useState("");
+    const [searchOpen, setSearchOpen] = useState(false);
+    const searchRef = useRef<HTMLDivElement>(null);
+    const router = useRouter();
+
+    // Close dropdowns when clicking outside
     useEffect(() => {
         function handleClickOutside(e: MouseEvent) {
             if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
                 setDropdownOpen(false);
+            }
+            if (searchRef.current && !searchRef.current.contains(e.target as Node)) {
+                setSearchOpen(false);
             }
         }
         document.addEventListener("mousedown", handleClickOutside);
         return () => document.removeEventListener("mousedown", handleClickOutside);
     }, []);
 
+    const filteredForms = forms?.filter(f => 
+        f.title.toLowerCase().includes(searchQuery.toLowerCase()) || 
+        f.description?.toLowerCase().includes(searchQuery.toLowerCase())
+    ) || [];
+
+    const handleFormClick = (form: any) => {
+        setSearchOpen(false);
+        setSearchQuery("");
+        if (form.status === "active") {
+            router.push(`/dashboard/responses?formId=${form.id}`);
+        } else if (form.status === "draft") {
+            router.push(`/dashboard/form/${form.id}`);
+        } else if (form.status === "archived") {
+            router.push(`/dashboard/responses?formId=${form.id}`);
+        }
+    };
+
+    const getStatusIcon = (status: string) => {
+        switch (status) {
+            case "active": return <Send size={14} className="text-[#50CD89]" />;
+            case "draft": return <FileEdit size={14} className="text-[#A1A5B7]" />;
+            case "archived": return <Archive size={14} className="text-[#FFA800]" />;
+            default: return <FileIcon size={14} className="text-[#A1A5B7]" />;
+        }
+    };
+
     return (
         <header className="topbar">
             <span className="topbar-title">{title}</span>
 
             {/* Search */}
-            <div className="topbar-search">
-                <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-                    <circle cx="6" cy="6" r="4.5" stroke="#4A4D65" strokeWidth="1.5" />
-                    <path d="M9.5 9.5L12 12" stroke="#4A4D65" strokeWidth="1.5" strokeLinecap="round" />
-                </svg>
-                <input placeholder="Search..." />
+            <div className="topbar-search relative" ref={searchRef}>
+                <Search size={14} className="text-[#4A4D65] flex-shrink-0" />
+                <input 
+                    placeholder="Search forms..." 
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    onFocus={() => setSearchOpen(true)}
+                />
+                
+                {searchOpen && searchQuery && (
+                    <div className="absolute top-[calc(100%+8px)] left-0 w-80 bg-[#0E0F1A] border border-[rgba(255,255,255,0.07)] rounded-xl shadow-2xl overflow-hidden z-[100] max-h-96 flex flex-col">
+                        <div className="p-2 text-xs font-semibold text-[#8B8FA8] uppercase tracking-wider border-b border-[rgba(255,255,255,0.05)] bg-[#080910]">
+                            Search Results
+                        </div>
+                        <div className="flex-1 overflow-y-auto p-2 flex flex-col gap-1">
+                            {filteredForms.length === 0 ? (
+                                <div className="p-4 text-center text-[#A1A5B7] text-sm">
+                                    No forms found matching "{searchQuery}"
+                                </div>
+                            ) : (
+                                filteredForms.map((form) => (
+                                    <button
+                                        key={form.id}
+                                        onClick={() => handleFormClick(form)}
+                                        className="text-left w-full p-2.5 rounded-lg hover:bg-[rgba(255,255,255,0.04)] transition-colors flex flex-col gap-1"
+                                    >
+                                        <div className="flex items-center justify-between">
+                                            <span className="text-sm font-medium text-white line-clamp-1">{form.title}</span>
+                                            {getStatusIcon(form.status)}
+                                        </div>
+                                        {form.description && (
+                                            <span className="text-xs text-[#8B8FA8] line-clamp-1">{form.description}</span>
+                                        )}
+                                    </button>
+                                ))
+                            )}
+                        </div>
+                    </div>
+                )}
             </div>
 
             {/* Avatar + dropdown */}
