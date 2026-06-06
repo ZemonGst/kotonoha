@@ -22,10 +22,10 @@ import "~/components/dashboard/dashboard.css";
 const navItems = [
     { label: "Form Creation",   href: "/dashboard/create",    icon: Plus },
     { label: "Drafts",          href: "/dashboard/drafts",    icon: File },
-    { label: "Published Forms", href: "/dashboard/published", icon: Send },
+    { label: "Published Forms", href: "/dashboard/published-forms", icon: Send },
     { label: "Responses",       href: "/dashboard/responses", icon: Inbox },
     { label: "Analytics",       href: "/dashboard/analytics", icon: BarChart2 },
-    { label: "Archived Forms",  href: "/dashboard/archived",  icon: Archive },
+    { label: "Archived Forms",  href: "/dashboard/archived-forms",  icon: Archive },
     { label: "Templates",       href: "/dashboard/templates", icon: Layout },
     { label: "Explore",         href: "/dashboard/explore",   icon: Search },
     { label: "Settings",        href: "/dashboard/settings",  icon: Settings },

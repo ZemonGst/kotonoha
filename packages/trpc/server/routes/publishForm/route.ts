@@ -11,6 +11,8 @@ import {
     endPublishedFormRouteOutputSchema,
     getPublishedFormByIdRouteInputSchema,
     getPublishedFormByIdRouteOutputSchema,
+    getPublicFormWithFieldsRouteInputSchema,
+    getPublicFormWithFieldsRouteOutputSchema,
 } from "./model";
 
 const publishFormService = new PublishFormService();
@@ -79,6 +81,15 @@ export const publishFormRouter = router({
         .output(getPublishedFormByIdRouteOutputSchema)
         .query(async ({ input }) => {
             const form = await publishFormService.getPublishedFormById({ id: input.id });
+            return form;
+        }),
+
+    getPublicFormWithFields: publicProcedure
+        .meta(getMeta("/getPublicFormWithFields", "Get a published form along with its fields (Public)"))
+        .input(getPublicFormWithFieldsRouteInputSchema)
+        .output(getPublicFormWithFieldsRouteOutputSchema)
+        .query(async ({ input }) => {
+            const form = await publishFormService.getPublicFormWithFields({ id: input.id });
             return form;
         }),
 });

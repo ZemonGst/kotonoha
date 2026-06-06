@@ -1,7 +1,7 @@
-import { db, eq, and } from "@repo/database";
+import { db, eq, and, asc } from "@repo/database";
 import { formsTable } from "@repo/database/models/form";
+import { formFieldsTable } from "@repo/database/models/form-field";
 import { publishedFormsTable } from "@repo/database/models/published-form";
-
 import {
     PublishFormInputType,
     publishFormInputSchema,
@@ -16,7 +16,7 @@ export type PublishedFormWithUrlType = PublishedFormType & { url: string };
 class PublishFormService {
     public generatePublicFormUrl(publishedFormId: string): string {
         const baseUrl = process.env.FRONTEND_URL || "http://localhost:3000";
-        return `${baseUrl}/f/${publishedFormId}`;
+        return `${baseUrl}/forms/${publishedFormId}`;
     }
 
     public async publishForm(payload: PublishFormInputType): Promise<PublishedFormWithUrlType> {
@@ -85,6 +85,48 @@ class PublishFormService {
         }
 
         return publishedFormSchema.parseAsync(result[0]);
+    }
+
+    public async getPublicFormWithFields(payload: GetPublishedFormInputType) {
+        const { id } = await getPublishedFormSchema.parseAsync(payload);
+
+        const publishedResult = await db
+            .select()
+            .from(publishedFormsTable)
+            .where(eq(publishedFormsTable.id, id));
+
+        if (!publishedResult || publishedResult.length === 0 || !publishedResult[0]) {
+            throw new Error("Published form not found");
+        }
+
+        const publishedForm = publishedResult[0];
+
+        const formResult = await db
+            .select()
+            .from(formsTable)
+            .where(eq(formsTable.id, publishedForm.formId));
+
+        if (!formResult || formResult.length === 0 || !formResult[0]) {
+            throw new Error("Form not found");
+        }
+
+        const baseForm = formResult[0];
+
+        const fields = await db
+            .select()
+            .from(formFieldsTable)
+            .where(eq(formFieldsTable.formId, baseForm.id))
+            .orderBy(asc(formFieldsTable.order));
+
+        return {
+            id: publishedForm.id,
+            formId: baseForm.id,
+            title: baseForm.title,
+            description: baseForm.description,
+            status: baseForm.status,
+            expiresAt: publishedForm.expiresAt,
+            fields: fields.map(f => ({ ...f, order: Number(f.order) }))
+        };
     }
 
     public async getPublishedFormsByUser(userId: string): Promise<PublishedFormType[]> {

@@ -2,7 +2,8 @@ import { z } from "zod";
 import { 
     publishFormInputSchema, 
     publishedFormSchema,
-    getPublishedFormSchema
+    getPublishedFormSchema,
+    getPublicFormWithFieldsOutputSchema
 } from "../../../../services/publishForm/model";
 
 export const publishFormRouteInputSchema = publishFormInputSchema.omit({ userId: true });
@@ -15,3 +16,6 @@ export const endPublishedFormRouteOutputSchema = z.object({ success: z.boolean()
 
 export const getPublishedFormByIdRouteInputSchema = getPublishedFormSchema;
 export const getPublishedFormByIdRouteOutputSchema = publishedFormSchema;
+
+export const getPublicFormWithFieldsRouteInputSchema = getPublishedFormSchema;
+export const getPublicFormWithFieldsRouteOutputSchema = getPublicFormWithFieldsOutputSchema;

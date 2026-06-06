@@ -15,7 +15,7 @@ export type PublishedFormType = z.infer<typeof publishedFormSchema>;
 export const publishFormInputSchema = z.object({
     formId: z.string().uuid().describe("Unique identifier of the form to publish"),
     userId: z.string().uuid().describe("ID of the user requesting the publish action"),
-    expiresAt: z.date().nullable().optional().describe("Optional expiration date for the published form"),
+    expiresAt: z.coerce.date().nullable().optional().describe("Optional expiration date for the published form"),
 });
 
 export type PublishFormInputType = z.infer<typeof publishFormInputSchema>;
@@ -25,3 +25,13 @@ export const getPublishedFormSchema = z.object({
 });
 
 export type GetPublishedFormInputType = z.infer<typeof getPublishedFormSchema>;
+
+export const getPublicFormWithFieldsOutputSchema = z.object({
+    id: z.string().uuid(),
+    formId: z.string().uuid(),
+    title: z.string(),
+    description: z.string().nullable().optional(),
+    status: z.string(),
+    expiresAt: z.date().nullable().optional(),
+    fields: z.array(z.any())
+});
