@@ -1,4 +1,4 @@
-import { db, and, eq, lt, sql } from "@repo/database";
+import { db, and, eq, lt, sql, inArray } from "@repo/database";
 import { formsTable } from "@repo/database/models/form";
 import { publishedFormsTable } from "@repo/database/models/published-form";
 
@@ -31,12 +31,10 @@ class ExpirationService {
             const formIdsToArchive = expiredRecords.map(record => record.formId);
 
             // Update forms.status = archived
-            for (const formId of formIdsToArchive) {
-                await tx
-                    .update(formsTable)
-                    .set({ status: "archived", updatedAt: new Date() })
-                    .where(eq(formsTable.id, formId));
-            }
+            await tx
+                .update(formsTable)
+                .set({ status: "archived" })
+                .where(inArray(formsTable.id, formIdsToArchive));
 
             archivedCount = formIdsToArchive.length;
         });
