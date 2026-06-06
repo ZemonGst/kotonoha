@@ -3,9 +3,12 @@ import { logger } from "@repo/logger";
 import { app as expressApplication } from "./server";
 
 import { env } from "./env";
+import { setupCronJobs } from "./cron";
 
 async function init() {
   try {
+    setupCronJobs();
+
     const server = http.createServer(expressApplication);
     const PORT: number = env.PORT ? +env.PORT : 8000;
     server.listen(PORT, () => {

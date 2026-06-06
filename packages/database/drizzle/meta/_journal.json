@@ -71,6 +71,20 @@
       "when": 1780740152486,
       "tag": "0009_neat_ted_forrester",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1780742394508,
+      "tag": "0010_nice_nightmare",
+      "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "7",
+      "when": 1780742416138,
+      "tag": "0011_dizzy_omega_red",
+      "breakpoints": true
     }
   ]
 }

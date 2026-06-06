@@ -14,10 +14,12 @@ export const responsesTable = pgTable("responses", {
     .notNull()
     .references(() => publishedFormsTable.id, { onDelete: "cascade" }),
 
-  answers: jsonb("answers")
+  responseData: jsonb("response_data")
     .$type<Record<string, unknown>>()
     .notNull()
     .default({}),
 
   submittedAt: timestamp("submitted_at").defaultNow().notNull(),
+
+  createdAt: timestamp("created_at").defaultNow().notNull(),
 });

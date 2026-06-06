@@ -7,6 +7,9 @@ import { formRouter } from "./routes/form/route";
 import { draftRouter } from "./routes/draft/route";
 import { defaultTemplateRouter } from "./routes/default-template/route";
 
+import { publishFormRouter } from "./routes/publishForm/route";
+import { responseRouter } from "./routes/response/route";
+
 export const serverRouter = router({
   health: healthRouter,
   auth: authRouter,
@@ -14,6 +17,8 @@ export const serverRouter = router({
   form: formRouter,
   draft: draftRouter,
   defaultTemplate: defaultTemplateRouter,
+  publishForm: publishFormRouter,
+  response: responseRouter,
 });
 
 
