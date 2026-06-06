@@ -140,6 +140,10 @@
   *:not(input):not(textarea):not([contenteditable="true"]) {
     caret-color: transparent;
   }
+
+  input, textarea, [contenteditable="true"] {
+    caret-color: auto;
+  }
 }
 
 @layer components {
