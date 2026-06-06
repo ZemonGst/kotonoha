@@ -9,7 +9,7 @@ export default function ArchivedFormsPage() {
     const { forms, isLoading } = useGetAllForms("archived");
 
     return (
-        <div className="page-content" style={{ marginLeft: 0, marginTop: 0 }}>
+        <div>
             <div className="page-header">
                 <div className="page-header-left">
                     <h1 className="text-white text-2xl font-bold tracking-tight">Archived Forms</h1>

@@ -73,15 +73,15 @@ function ResponsesContent() {
     };
 
     return (
-        <div className="page-content" style={{ marginLeft: 0, marginTop: 0 }}>
-            <div className="page-header mb-8">
+        <div className="flex flex-col h-[calc(100vh-60px-64px)]">
+            <div className="page-header mb-8 shrink-0">
                 <div className="page-header-left">
                     <h1 className="text-white text-2xl font-bold tracking-tight">Responses</h1>
                     <p className="text-[#A1A5B7] mt-1">View submissions for your published forms.</p>
                 </div>
             </div>
 
-            <div className="flex flex-col lg:flex-row gap-6 h-[calc(100vh-180px)]">
+            <div className="flex flex-col lg:flex-row gap-6 flex-1 min-h-0">
                 {/* Sidebar with forms list */}
                 <div className="w-full lg:w-80 flex flex-col bg-[#0C0D18] border border-[rgba(255,255,255,0.08)] rounded-xl overflow-hidden shrink-0">
                     <div className="p-4 border-b border-[rgba(255,255,255,0.08)]">
