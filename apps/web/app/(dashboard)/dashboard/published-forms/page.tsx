@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useMemo } from "react";
+import React, { useMemo, useState } from "react";
 import Link from "next/link";
 import { formatDistanceToNow, isPast } from "date-fns";
 import { MoreVertical, Copy, Archive, FileIcon, Loader2, Link as LinkIcon, Check, Eye } from "lucide-react";
@@ -12,12 +12,23 @@ import {
     DropdownMenuItem, 
     DropdownMenuTrigger 
 } from "~/components/ui/dropdown-menu";
+import { 
+    AlertDialog, 
+    AlertDialogContent, 
+    AlertDialogHeader, 
+    AlertDialogTitle, 
+    AlertDialogDescription, 
+    AlertDialogFooter, 
+    AlertDialogCancel, 
+    AlertDialogAction 
+} from "~/components/ui/alert-dialog";
 
 export default function PublishedFormsPage() {
     const { forms: activeForms, isLoading: formsLoading, refetch: refetchForms } = useGetAllForms("active");
     const { forms: publishedForms, isLoading: publishedLoading, refetch: refetchPublished } = usePublishedForms();
     const { endForm, isPending: isEndPending } = useEndPublishedForm();
-    const [copiedId, setCopiedId] = React.useState<string | null>(null);
+    const [copiedId, setCopiedId] = useState<string | null>(null);
+    const [formToEnd, setFormToEnd] = useState<string | null>(null);
 
     const mergedForms = useMemo(() => {
         if (!activeForms || !publishedForms) return [];
@@ -40,18 +51,21 @@ export default function PublishedFormsPage() {
         setTimeout(() => setCopiedId(null), 2000);
     };
 
-    const handleEndForm = (formId: string) => {
-        if (confirm("Are you sure you want to end this form? It will be archived and no longer accept responses.")) {
-            endForm(
-                { formId },
-                {
-                    onSuccess: () => {
-                        refetchForms();
-                        refetchPublished();
-                    }
+    const confirmEndForm = () => {
+        if (!formToEnd) return;
+        endForm(
+            { formId: formToEnd },
+            {
+                onSuccess: () => {
+                    refetchForms();
+                    refetchPublished();
+                    setFormToEnd(null);
+                },
+                onError: () => {
+                    setFormToEnd(null);
                 }
-            );
-        }
+            }
+        );
     };
 
     const isLoading = formsLoading || publishedLoading;
@@ -109,7 +123,7 @@ export default function PublishedFormsPage() {
                                                         <span className="font-medium text-sm">Open Public Form</span>
                                                     </a>
                                                 </DropdownMenuItem>
-                                                <DropdownMenuItem onClick={(e) => { e.stopPropagation(); handleEndForm(form.id); }} className="text-[#ff6b6b] focus:bg-[rgba(255,107,107,0.1)] focus:text-[#ff6b6b] rounded-lg cursor-pointer flex items-center gap-2.5 py-2 px-3 mt-1 transition-colors">
+                                                <DropdownMenuItem onClick={(e) => { e.stopPropagation(); setFormToEnd(form.id); }} className="text-[#ff6b6b] focus:bg-[rgba(255,107,107,0.1)] focus:text-[#ff6b6b] rounded-lg cursor-pointer flex items-center gap-2.5 py-2 px-3 mt-1 transition-colors">
                                                     <Archive size={15} className="opacity-80" /> 
                                                     <span className="font-medium text-sm">End Form</span>
                                                 </DropdownMenuItem>
@@ -142,6 +156,31 @@ export default function PublishedFormsPage() {
                     })}
                 </div>
             )}
+
+            <AlertDialog open={!!formToEnd} onOpenChange={(open) => !open && setFormToEnd(null)}>
+                <AlertDialogContent className="bg-[#131422] border border-[rgba(255,255,255,0.1)] text-white">
+                    <AlertDialogHeader>
+                        <AlertDialogTitle>End Form</AlertDialogTitle>
+                        <AlertDialogDescription className="text-[#8B8FA8]">
+                            Are you sure you want to end this form? It will be archived and no longer accept responses.
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                        <AlertDialogCancel disabled={isEndPending} className="bg-[rgba(255,255,255,0.05)] text-white hover:bg-[rgba(255,255,255,0.1)] hover:text-white border-none">Cancel</AlertDialogCancel>
+                        <AlertDialogAction 
+                            onClick={(e) => {
+                                e.preventDefault();
+                                confirmEndForm();
+                            }}
+                            disabled={isEndPending}
+                            className="bg-[#D93025] hover:bg-[#D93025]/90 text-white border-none"
+                        >
+                            {isEndPending ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : null}
+                            End Form
+                        </AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
         </div>
     );
 }
