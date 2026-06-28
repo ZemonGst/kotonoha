@@ -129,3 +129,33 @@ export const useRefreshAccessToken = () => {
         status
     }
 }
+
+export const useForgotPasswordRequest = () => {
+    const {
+        mutateAsync: forgotPasswordRequestAsync,
+        mutate: forgotPasswordRequest,
+        error, isError, failureCount, isIdle, isSuccess, variables, status,
+    } = trpc.auth.forgotPasswordRequest.useMutation();
+
+    return { forgotPasswordRequestAsync, forgotPasswordRequest, error, isError, failureCount, isIdle, isSuccess, variables, status };
+}
+
+export const useForgotPasswordVerify = () => {
+    const {
+        mutateAsync: forgotPasswordVerifyAsync,
+        mutate: forgotPasswordVerify,
+        error, isError, failureCount, isIdle, isSuccess, variables, status,
+    } = trpc.auth.forgotPasswordVerify.useMutation();
+
+    return { forgotPasswordVerifyAsync, forgotPasswordVerify, error, isError, failureCount, isIdle, isSuccess, variables, status };
+}
+
+export const useResetPassword = () => {
+    const {
+        mutateAsync: resetPasswordAsync,
+        mutate: resetPassword,
+        error, isError, failureCount, isIdle, isSuccess, variables, status,
+    } = trpc.auth.resetPassword.useMutation();
+
+    return { resetPasswordAsync, resetPassword, error, isError, failureCount, isIdle, isSuccess, variables, status };
+}

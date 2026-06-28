@@ -1,8 +1,8 @@
 services:
-  postgresdb:
+  kotonoha_db:
     image: postgres:15
     restart: unless-stopped
-    container_name: postgresdb
+    container_name: kotonoha_db
 
     environment:
       POSTGRES_USER: postgres
@@ -13,7 +13,7 @@ services:
       - "5432:5432"
 
     volumes:
-      - pg_data:/var/lib/postgresql/data
+      - kotonoha_pg_data:/var/lib/postgresql/data
 
 volumes:
-  pg_data:
+  kotonoha_pg_data:

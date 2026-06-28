@@ -46,3 +46,22 @@ export const refreshAccessTokenOutputSchema = successOutputSchema;
 export const logoutOutputSchema = z.object({
     message: z.string().describe('Logout successful'),
 });
+
+export const forgotPasswordRequestInputSchema = z.object({
+    email: z.email().describe('Email of the user'),
+});
+
+export const forgotPasswordRequestOutputSchema = userSuccessOutputSchema;
+
+export const forgotPasswordVerifyInputSchema = userIdSchema.extend({
+    otp: z.string().length(6).describe('6 digit OTP'),
+});
+
+export const forgotPasswordVerifyOutputSchema = successOutputSchema;
+
+export const resetPasswordInputSchema = userIdSchema.extend({
+    otp: z.string().length(6).describe('6 digit OTP'),
+    newPassword: z.string().min(8).max(100).describe('New password of the user'),
+});
+
+export const resetPasswordOutputSchema = successOutputSchema;

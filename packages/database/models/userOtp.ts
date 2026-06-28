@@ -4,21 +4,23 @@ import {
     varchar,
     timestamp,
     integer,
+    unique,
 } from "drizzle-orm/pg-core";
 
 import { usersTable } from "./user";
 
-export const emailVerificationOtpsTable = pgTable(
+export const userOtpsTable = pgTable(
     "email_verification_otps",
     {
         id: uuid("id").primaryKey().defaultRandom(),
 
         userId: uuid("user_id")
             .notNull()
-            .unique()
             .references(() => usersTable.id, {
                 onDelete: "cascade",
             }),
+
+        purpose: varchar("purpose", { length: 50 }).notNull().default("EMAIL_VERIFICATION"),
 
         otpHash: varchar("otp_hash", { length: 255 }).notNull(),
 
@@ -35,11 +37,14 @@ export const emailVerificationOtpsTable = pgTable(
         })
             .notNull()
             .defaultNow(),
-    }
+    },
+    (t) => ({
+        unq: unique("user_id_purpose_unq").on(t.userId, t.purpose),
+    })
 );
 
-export type SelectEmailVerificationOtp =
-    typeof emailVerificationOtpsTable.$inferSelect;
+export type SelectUserOtp =
+    typeof userOtpsTable.$inferSelect;
 
-export type InsertEmailVerificationOtp =
-    typeof emailVerificationOtpsTable.$inferInsert;
+export type InsertUserOtp =
+    typeof userOtpsTable.$inferInsert;

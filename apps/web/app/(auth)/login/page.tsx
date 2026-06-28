@@ -157,7 +157,7 @@ export default function LoginPage() {
               </div>
 
               <div className="forgot-link-row">
-                <Link href="#" className="forgot-link">Forgot your password?</Link>
+                <Link href="/forgot-password" className="forgot-link">Forgot your password?</Link>
               </div>
 
               {errors.form && <p className="field-error" style={{ marginBottom: '10px' }}>{errors.form}</p>}

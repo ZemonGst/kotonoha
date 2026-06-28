@@ -20,7 +20,7 @@ class ExpirationService {
                 .where(
                     and(
                         eq(formsTable.status, "active"),
-                        lt(publishedFormsTable.expiresAt, new Date())
+                        lt(publishedFormsTable.expiresAt, sql`now()`)
                     )
                 );
 

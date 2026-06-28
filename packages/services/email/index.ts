@@ -5,6 +5,8 @@ import { env } from "../env";
 import {
     sendOtpEmailInputSchema,
     SendOtpEmailInputType,
+    sendForgotPasswordEmailInputSchema,
+    SendForgotPasswordEmailInputType,
 } from "./model";
 
 class EmailService {
@@ -34,6 +36,34 @@ class EmailService {
                 <p>Your OTP is:</p>
                 <h1>${otp}</h1>
                 <p>This code expires in 10 minutes.</p>
+            `,
+        });
+
+        if (result.error) {
+            throw new Error(result.error.message);
+        }
+
+        return result.data;
+    }
+
+    /**
+     * Send forgot password email to user
+     */
+    public async sendForgotPasswordEmail(
+        payload: SendForgotPasswordEmailInputType
+    ) {
+        const { email, otp } =
+            await sendForgotPasswordEmailInputSchema.parseAsync(payload);
+
+        const result = await this.resend.emails.send({
+            from: "noreply@kotonoha.soumyaditya.in",
+            to: email,
+            subject: "Reset your Kotonoha password",
+            html: `
+                <h2>Password Reset Request</h2>
+                <p>Your password reset OTP is:</p>
+                <h1>${otp}</h1>
+                <p>This code expires in 10 minutes. If you did not request this, please ignore this email.</p>
             `,
         });
 

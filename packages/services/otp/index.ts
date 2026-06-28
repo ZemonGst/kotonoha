@@ -1,29 +1,36 @@
 import bcrypt from "bcrypt";
 
-import { db, eq } from "@repo/database";
+import { db, eq, and } from "@repo/database";
 
-import { emailVerificationOtpsTable } from "@repo/database/models/userOtp";
+import { userOtpsTable } from "@repo/database/models/userOtp";
 import { usersTable } from "@repo/database/models/user";
 
-
 import {
-    createOtpForUserInputSchema,
-    CreateOtpForUserInputType,
-
+    createOtpInputSchema,
+    CreateOtpInputType,
     verifyOtpInputSchema,
     VerifyOtpInputType,
-
     resendOtpInputSchema,
     ResendOtpInputType,
+    checkOtpInputSchema,
+    CheckOtpInputType,
+    consumeOtpInputSchema,
+    ConsumeOtpInputType,
+    OtpPurpose,
 } from "./model";
 
 class OtpService {
-    // Get otp record for a user
-    private async getOtpByUserId(userId: string) {
+    // Get otp record for a user and purpose
+    private async getOtpByUserIdAndPurpose(userId: string, purpose: OtpPurpose) {
         const result = await db
             .select()
-            .from(emailVerificationOtpsTable)
-            .where(eq(emailVerificationOtpsTable.userId, userId));
+            .from(userOtpsTable)
+            .where(
+                and(
+                    eq(userOtpsTable.userId, userId),
+                    eq(userOtpsTable.purpose, purpose)
+                )
+            );
 
         if (!result || result.length === 0) {
             return null;
@@ -31,196 +38,109 @@ class OtpService {
 
         return result[0];
     }
-    // Deletes OTP record for a user
-    private async deleteOtpByUserId(userId: string) {
+
+    // Deletes OTP record for a user and purpose
+    private async deleteOtpByUserIdAndPurpose(userId: string, purpose: OtpPurpose) {
         await db
-            .delete(emailVerificationOtpsTable)
+            .delete(userOtpsTable)
             .where(
-                eq(emailVerificationOtpsTable.userId, userId)
+                and(
+                    eq(userOtpsTable.userId, userId),
+                    eq(userOtpsTable.purpose, purpose)
+                )
             );
     }
 
-    // Create otp for the user
-    public async createOtpForUser(
-        payload: CreateOtpForUserInputType
-    ) {
-        // Validate payload
-        const { userId } =
-            await createOtpForUserInputSchema.parseAsync(payload);
-
-        // Generate random 6 digit OTP
-        const otp = Math.floor(
-            100000 + Math.random() * 900000
-        ).toString();
-
-        // Hash OTP before storing
+    public async createOtp(payload: CreateOtpInputType) {
+        const { userId, purpose } = await createOtpInputSchema.parseAsync(payload);
+        const otp = Math.floor(100000 + Math.random() * 900000).toString();
         const otpHash = await bcrypt.hash(otp, 10);
+        const expiresAt = new Date(Date.now() + 10 * 60 * 1000);
 
-        // OTP expires after 10 minutes
-        const expiresAt = new Date(
-            Date.now() + 10 * 60 * 1000
-        );
-
-        // Check if user already has an OTP record
-        const existingOtp = await this.getOtpByUserId(userId);
+        const existingOtp = await this.getOtpByUserIdAndPurpose(userId, purpose);
 
         if (existingOtp) {
-            // Update existing OTP
             await db
-                .update(emailVerificationOtpsTable)
-                .set({
-                    otpHash,
-                    attempts: 0,
-                    expiresAt,
-                })
-                .where(
-                    eq(
-                        emailVerificationOtpsTable.userId,
-                        userId
-                    )
-                );
+                .update(userOtpsTable)
+                .set({ otpHash, attempts: 0, expiresAt })
+                .where(and(eq(userOtpsTable.userId, userId), eq(userOtpsTable.purpose, purpose)));
         } else {
-            // Create new OTP record in db
             await db
-                .insert(emailVerificationOtpsTable)
-                .values({
-                    userId,
-                    otpHash,
-                    attempts: 0,
-                    expiresAt,
-                });
+                .insert(userOtpsTable)
+                .values({ userId, purpose, otpHash, attempts: 0, expiresAt });
         }
 
-        // Return plain OTP for email sending
-        return {
-            otp,
-        };
+        return { otp };
     }
 
+    public async checkOtp(payload: CheckOtpInputType) {
+        const { userId, otp, purpose } = await checkOtpInputSchema.parseAsync(payload);
+        const otpRecord = await this.getOtpByUserIdAndPurpose(userId, purpose);
 
-    // Verify otp for the user
-    public async verifyOtp(
-        payload: VerifyOtpInputType
-    ) {
-        const { userId, otp } =
-            await verifyOtpInputSchema.parseAsync(payload);
+        if (!otpRecord) throw new Error("OTP not found");
+        if (otpRecord.attempts >= 5) throw new Error("Too many failed attempts. Please request a new OTP.");
+        if (otpRecord.expiresAt < new Date()) throw new Error("OTP has expired");
 
-        // Check user exists
-        const userResult = await db
-            .select()
-            .from(usersTable)
-            .where(eq(usersTable.id, userId));
-
-        const user = userResult[0];
-
-        if (!user) {
-            throw new Error("User not found");
-        }
-
-        if (user.emailVerified) {
-            throw new Error("Email already verified");
-        }
-
-        const otpRecord =
-            await this.getOtpByUserId(userId);
-
-        if (!otpRecord) {
-            throw new Error("OTP not found");
-        }
-
-        // Block verification after 5 failed attempts
-        if (otpRecord.attempts >= 5) {
-            throw new Error(
-                "Too many failed attempts. Please request a new OTP."
-            );
-        }
-
-        // Check OTP expiry
-        if (otpRecord.expiresAt < new Date()) {
-            throw new Error("OTP has expired");
-        }
-
-        // Compare entered OTP with stored hash
-        const isValid = await bcrypt.compare(
-            otp,
-            otpRecord.otpHash
-        );
+        const isValid = await bcrypt.compare(otp, otpRecord.otpHash);
 
         if (!isValid) {
             await db
-                .update(emailVerificationOtpsTable)
-                .set({
-                    attempts: otpRecord.attempts + 1,
-                })
-                .where(
-                    eq(
-                        emailVerificationOtpsTable.userId,
-                        userId
-                    )
-                );
-
+                .update(userOtpsTable)
+                .set({ attempts: otpRecord.attempts + 1 })
+                .where(and(eq(userOtpsTable.userId, userId), eq(userOtpsTable.purpose, purpose)));
             throw new Error("Invalid OTP");
         }
 
-        // Mark user email as verified
-        await db
-            .update(usersTable)
-            .set({
-                emailVerified: true,
-            })
-            .where(eq(usersTable.id, userId));
-
-        // Remove OTP record after successful verification
-        await this.deleteOtpByUserId(userId);
-
-        return {
-            success: true,
-        };
+        return { success: true };
     }
 
-    // Resend otp for the user
-    public async resendOtp(
-        payload: ResendOtpInputType
-    ) {
-        const { userId } =
-            await resendOtpInputSchema.parseAsync(payload);
+    public async consumeOtp(payload: ConsumeOtpInputType) {
+        const { userId, otp, purpose } = await consumeOtpInputSchema.parseAsync(payload);
+        await this.checkOtp({ userId, otp, purpose });
+        await this.deleteOtpByUserIdAndPurpose(userId, purpose);
+        return { success: true };
+    }
 
-        const otpRecord =
-            await this.getOtpByUserId(userId);
-
-        if (!otpRecord) {
-            throw new Error("OTP record not found");
+    // Verify otp for email verification (wraps consumeOtp to also update user status)
+    public async verifyOtp(payload: VerifyOtpInputType) {
+        const { userId, otp, purpose } = await verifyOtpInputSchema.parseAsync(payload);
+        
+        if (purpose !== "EMAIL_VERIFICATION") {
+            throw new Error("verifyOtp is only for email verification");
         }
 
-        const otp = Math.floor(
-            100000 + Math.random() * 900000
-        ).toString();
+        const userResult = await db.select().from(usersTable).where(eq(usersTable.id, userId));
+        const user = userResult[0];
+        if (!user) throw new Error("User not found");
+        if (user.emailVerified) throw new Error("Email already verified");
 
-        const otpHash = await bcrypt.hash(otp, 10);
-
-        const expiresAt = new Date(
-            Date.now() + 10 * 60 * 1000
-        );
+        await this.consumeOtp({ userId, otp, purpose });
 
         await db
-            .update(emailVerificationOtpsTable)
-            .set({
-                otpHash,
-                attempts: 0,
-                expiresAt,
-            })
-            .where(
-                eq(
-                    emailVerificationOtpsTable.userId,
-                    userId
-                )
-            );
+            .update(usersTable)
+            .set({ emailVerified: true })
+            .where(eq(usersTable.id, userId));
 
-        return {
-            otp,
-        };
+        return { success: true };
     }
 
+    public async resendOtp(payload: ResendOtpInputType) {
+        const { userId, purpose } = await resendOtpInputSchema.parseAsync(payload);
+        const otpRecord = await this.getOtpByUserIdAndPurpose(userId, purpose);
+
+        if (!otpRecord) throw new Error("OTP record not found");
+
+        const otp = Math.floor(100000 + Math.random() * 900000).toString();
+        const otpHash = await bcrypt.hash(otp, 10);
+        const expiresAt = new Date(Date.now() + 10 * 60 * 1000);
+
+        await db
+            .update(userOtpsTable)
+            .set({ otpHash, attempts: 0, expiresAt })
+            .where(and(eq(userOtpsTable.userId, userId), eq(userOtpsTable.purpose, purpose)));
+
+        return { otp };
+    }
 }
 
 export default OtpService;

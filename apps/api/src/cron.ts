@@ -8,6 +8,7 @@ export const setupCronJobs = () => {
     // Run every minute
     cron.schedule("* * * * *", async () => {
         try {
+            logger.debug("[Cron] Heartbeat: Checking for expired published forms...");
             const count = await expirationService.checkExpiredPublishedForms();
             if (count > 0) {
                 logger.info(`[Cron] Archived ${count} expired published forms.`);

@@ -81,3 +81,11 @@ export const logoutOutputSchema = z.object({
 });
 
 export type LogoutOutputType = z.infer<typeof logoutOutputSchema>;
+
+export const resetUserPasswordInputSchema = z.object({
+    userId: z.string().describe("ID of the user"),
+    newPassword: z.string().min(8).max(100).describe("New password of the user"),
+});
+
+export type ResetUserPasswordInputType =
+    z.infer<typeof resetUserPasswordInputSchema>;

@@ -19,6 +19,8 @@ import {
     signInWithEmailAndPasswordInputSchema,
     requestTokenRefreshInputSchema,
     logoutOutputSchema,
+    resetUserPasswordInputSchema,
+    ResetUserPasswordInputType,
 } from "./model";
 
 class UserService {
@@ -26,7 +28,7 @@ class UserService {
     // Private helpers
     // -------------------------------------------------------------------------
 
-    private async getUserByEmail(email: string) {
+    public async getUserByEmail(email: string) {
         const result = await db
             .select()
             .from(usersTable)
@@ -241,6 +243,39 @@ class UserService {
     public async logout(payload: LogoutOutputType) {
         const { message } = await logoutOutputSchema.parseAsync(payload);
         return { message };
+    }
+
+    public async resetUserPassword(
+        payload: ResetUserPasswordInputType
+    ) {
+        const { userId, newPassword } =
+            await resetUserPasswordInputSchema.parseAsync(payload);
+
+        // Check user exists
+        const user = await this.getUserById(userId);
+
+        if (!user) {
+            throw new Error("User not found");
+        }
+
+        // Check if new password is the same as the old password
+        const isSamePassword = await bcrypt.compare(newPassword, user.passwordHash);
+        if (isSamePassword) {
+            throw new Error("Please enter a new password that is different from your current one");
+        }
+
+        // Hash new password
+        const passwordHash = await bcrypt.hash(newPassword, 10);
+
+        // Update password in db
+        await db
+            .update(usersTable)
+            .set({ passwordHash })
+            .where(eq(usersTable.id, userId));
+
+        return {
+            success: true
+        };
     }
 }
 
