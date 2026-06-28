@@ -82,7 +82,6 @@ export default function LoginPage() {
         }
       })
     } catch (err: any) {
-      console.error(err)
       setErrors({ form: err?.message || 'Invalid email or password.' })
       setIsSubmitting(false)
     }

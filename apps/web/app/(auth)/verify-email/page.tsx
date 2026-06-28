@@ -117,7 +117,6 @@ function VerifyOTPContent() {
         })
       }, 600)
     } catch (err: any) {
-      console.error(err)
       setErrorMsg(err?.message || 'Invalid code.')
       setIsSubmitting(false)
     }
@@ -132,7 +131,6 @@ function VerifyOTPContent() {
       setCanResend(false)
       setErrorMsg('')
     } catch (err: any) {
-      console.error(err)
       setErrorMsg(err?.message || 'Failed to resend code.')
     } finally {
       setIsResending(false)

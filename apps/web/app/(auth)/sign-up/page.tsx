@@ -86,7 +86,6 @@ export default function SignUpPage() {
         }
       })
     } catch (err: any) {
-      console.error(err)
       setErrors({ form: err?.message || 'An error occurred during sign up.' })
       setIsSubmitting(false)
     }

@@ -22,21 +22,16 @@ export const useAuthErrorInterceptor = ({
 
     useEffect(() => {
         if (isError && error) {
-            console.log("Auth interceptor caught error:", error);
             const isUnauthorized = (error as any)?.data?.code === 'UNAUTHORIZED' || (error as any)?.message?.includes('UNAUTHORIZED') || (error as any)?.message?.includes('Access token not found');
             
             if (isUnauthorized) {
-                console.log("UNAUTHORIZED detected. Attempting to refresh token...");
                 refreshAccessTokenAsync()
                     .then(() => {
-                        console.log("Token refreshed successfully.");
                         if (refetch) {
-                            console.log("Retrying original request...");
                             refetch();
                         }
                     })
                     .catch((err) => {
-                        console.error("Token refresh failed. Redirecting to login...", err);
                         router.push('/login');
                     });
             }

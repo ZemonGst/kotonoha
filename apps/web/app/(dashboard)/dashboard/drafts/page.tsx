@@ -78,7 +78,6 @@ export default function DraftsPage() {
                                         router.push(`/dashboard/form/${form.id}`);
                                     }
                                 } catch (e) {
-                                    console.error('Failed to create form:', e);
                                 }
                             }}
                         >
@@ -109,7 +108,6 @@ export default function DraftsPage() {
                                                 const result = await cloneTemplateAsync({ templateId: template.id });
                                                 router.push(`/dashboard/form/${result.formId}`);
                                             } catch (err) {
-                                                console.error('Failed to clone template:', err);
                                             }
                                         }}
                                         disabled={isCloning}

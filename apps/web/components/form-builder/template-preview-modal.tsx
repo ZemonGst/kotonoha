@@ -52,7 +52,6 @@ export function TemplatePreviewModal({ templateId, open, onOpenChange }: Templat
             router.push(`/dashboard/form/${result.formId}`);
         } catch (error) {
             toast.error("Failed to clone template. Please try again.");
-            console.error("Clone template error:", error);
         }
     };
 

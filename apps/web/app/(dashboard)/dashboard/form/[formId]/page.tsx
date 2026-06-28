@@ -430,7 +430,6 @@ export default function FormBuilderPage() {
                                         const result = await cloneTemplateAsync({ templateId });
                                         router.push(`/dashboard/form/${result.formId}`);
                                     } catch (err) {
-                                        console.error('Failed to clone template:', err);
                                     }
                                 }}
                             >

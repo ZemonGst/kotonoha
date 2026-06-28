@@ -206,27 +206,19 @@ export const useSaveDelta = (options?: { onSuccess?: (data: any) => void }) => {
     const router = useRouter();
 
     const saveDeltaAsync = useCallback(async (payload: any) => {
-        console.log('[useSaveDelta] save start');
         try {
             const result = await mutation.mutateAsync(payload);
-            console.log('[useSaveDelta] final result (success without refresh)');
             return result;
         } catch (error: any) {
             const isUnauthorized = error?.data?.code === 'UNAUTHORIZED' || error?.message?.includes('UNAUTHORIZED') || error?.message?.includes('Access token not found');
             
             if (isUnauthorized) {
-                console.log('[useSaveDelta] unauthorized detected');
                 try {
                     await refreshAccessTokenAsync();
-                    console.log('[useSaveDelta] refresh success');
                     
-                    console.log('[useSaveDelta] retry start');
                     const retryResult = await mutation.mutateAsync(payload);
-                    console.log('[useSaveDelta] retry success');
-                    console.log('[useSaveDelta] final result after retry');
                     return retryResult;
                 } catch (retryOrRefreshError) {
-                    console.error('[useSaveDelta] refresh or retry failed', retryOrRefreshError);
                     router.push('/login');
                     throw error;
                 }

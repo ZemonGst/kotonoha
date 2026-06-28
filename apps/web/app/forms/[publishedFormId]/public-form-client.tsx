@@ -64,7 +64,6 @@ export function PublicFormClient({ publishedFormId, fields }: PublicFormClientPr
             });
             setIsSubmitted(true);
         } catch (err) {
-            console.error("Failed to submit form", err);
         }
     };
 
