@@ -9,6 +9,7 @@ import { defaultTemplateRouter } from "./routes/default-template/route";
 
 import { publishFormRouter } from "./routes/publishForm/route";
 import { responseRouter } from "./routes/response/route";
+import { analyticsRouter } from "./routes/analytics/route";
 
 export const serverRouter = router({
   health: healthRouter,
@@ -19,6 +20,7 @@ export const serverRouter = router({
   defaultTemplate: defaultTemplateRouter,
   publishForm: publishFormRouter,
   response: responseRouter,
+  analytics: analyticsRouter,
 });
 
 
