@@ -130,3 +130,12 @@ export const deleteFormInputSchema = z.object({
 });
 
 export const deleteFormOutputSchema = z.boolean();
+
+export const exportResponsesCsvInputSchema = z.object({
+    publishedFormId: z.string().uuid().describe("Unique identifier of the published form"),
+});
+
+export const exportResponsesCsvOutputSchema = z.object({
+    csv: z.string().describe("The generated CSV data as a string"),
+    filename: z.string().describe("The suggested filename for the CSV download"),
+});

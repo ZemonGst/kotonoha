@@ -3,10 +3,10 @@
 import React, { useMemo, useState, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
 import { formatDistanceToNow } from "date-fns";
-import { Loader2, MessageSquare, Inbox, Calendar } from "lucide-react";
+import { Loader2, MessageSquare, Inbox, Calendar, Download } from "lucide-react";
 import { useGetAllForms } from "~/hooks/draft";
 import { usePublishedForms } from "~/hooks/publish";
-import { useGetResponsesByPublishedForm } from "~/hooks/response";
+import { useGetResponsesByPublishedForm, useExportResponsesCsv } from "~/hooks/response";
 import { useGetFields } from "~/hooks/form";
 
 function ResponsesContent() {
@@ -49,6 +49,16 @@ function ResponsesContent() {
         selectedPublishedFormId || "",
         !!selectedPublishedFormId
     );
+
+    const { exportCsv } = useExportResponsesCsv();
+    const [exportingFormId, setExportingFormId] = useState<string | null>(null);
+
+    const handleDownload = async (e: React.MouseEvent, formId: string) => {
+        e.stopPropagation();
+        setExportingFormId(formId);
+        await exportCsv(formId);
+        setExportingFormId(null);
+    };
 
     const selectedFormDetails = mergedForms.find(f => f.id === selectedPublishedFormId);
 
@@ -98,20 +108,30 @@ function ResponsesContent() {
                             </div>
                         ) : (
                             mergedForms.map(form => (
-                                <button
+                                <div
                                     key={form.id}
                                     onClick={() => setSelectedPublishedFormId(form.id)}
-                                    className={`text-left p-3 rounded-lg transition-colors flex flex-col gap-1 ${selectedPublishedFormId === form.id ? 'bg-[rgba(217,48,37,0.1)] border border-[rgba(217,48,37,0.2)]' : 'hover:bg-[rgba(255,255,255,0.04)] border border-transparent'}`}
+                                    className={`cursor-pointer text-left p-3 rounded-lg transition-colors flex flex-col gap-1 ${selectedPublishedFormId === form.id ? 'bg-[rgba(217,48,37,0.1)] border border-[rgba(217,48,37,0.2)]' : 'hover:bg-[rgba(255,255,255,0.04)] border border-transparent'}`}
                                 >
                                     <span className={`font-medium text-sm line-clamp-1 ${selectedPublishedFormId === form.id ? 'text-white' : 'text-[#A1A5B7]'}`}>
                                         {form.title}
                                     </span>
-                                    <div className="flex items-center gap-2 text-xs text-[#8B8FA8]">
-                                        <span className={`px-1.5 py-0.5 rounded text-[10px] uppercase font-semibold ${form.status === 'active' ? 'bg-[rgba(80,205,137,0.1)] text-[#50CD89]' : 'bg-[rgba(255,255,255,0.05)] text-[#A1A5B7]'}`}>
-                                            {form.status}
-                                        </span>
+                                    <div className="flex items-center justify-between w-full">
+                                        <div className="flex items-center gap-2 text-xs text-[#8B8FA8]">
+                                            <span className={`px-1.5 py-0.5 rounded text-[10px] uppercase font-semibold ${form.status === 'active' ? 'bg-[rgba(80,205,137,0.1)] text-[#50CD89]' : 'bg-[rgba(255,255,255,0.05)] text-[#A1A5B7]'}`}>
+                                                {form.status}
+                                            </span>
+                                        </div>
+                                        <button
+                                            onClick={(e) => handleDownload(e, form.id)}
+                                            disabled={exportingFormId === form.id}
+                                            className="p-1.5 rounded-md bg-[rgba(255,255,255,0.05)] hover:bg-[rgba(255,255,255,0.1)] disabled:opacity-50 text-[#A1A5B7] hover:text-white transition-colors"
+                                            title="Download CSV"
+                                        >
+                                            {exportingFormId === form.id ? <Loader2 size={14} className="animate-spin" /> : <Download size={14} />}
+                                        </button>
                                     </div>
-                                </button>
+                                </div>
                             ))
                         )}
                     </div>

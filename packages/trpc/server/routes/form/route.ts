@@ -24,6 +24,8 @@ import {
     saveDeltaOutputSchema,
     deleteFormInputSchema,
     deleteFormOutputSchema,
+    exportResponsesCsvInputSchema,
+    exportResponsesCsvOutputSchema
 } from "./model";
 
 const TAGS = ["Form"];
@@ -191,5 +193,21 @@ export const formRouter = router({
             });
             
             return true;
+        }),
+
+    // Export responses to CSV
+    exportResponsesCsv: protectedProcedure
+        .meta(postMeta("/exportResponsesCsv", "Export responses for a published form as CSV"))
+        .input(exportResponsesCsvInputSchema)
+        .output(exportResponsesCsvOutputSchema)
+        .mutation(async ({ input, ctx }) => {
+            const { userId } = ctx;
+
+            const exportResult = await formService.exportResponsesToCsv({
+                publishedFormId: input.publishedFormId,
+                userId: userId,
+            });
+
+            return exportResult;
         }),
 });

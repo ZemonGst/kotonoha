@@ -80,3 +80,38 @@ export const useGetResponseCount = (publishedFormId: string, enabled = true) => 
         refetch,
     };
 };
+
+export const useExportResponsesCsv = () => {
+    const mutation = trpc.form.exportResponsesCsv.useMutation({
+        retry: trpcAuthRetry,
+    });
+
+    const exportCsv = async (publishedFormId: string) => {
+        try {
+            const { csv, filename } = await mutation.mutateAsync({ publishedFormId });
+            
+            // Programmatically download the CSV
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.setAttribute('download', filename);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+            
+            return { success: true };
+        } catch (error) {
+            console.error("Failed to export CSV:", error);
+            return { success: false, error };
+        }
+    };
+
+    return {
+        exportCsv,
+        isPending: mutation.isPending,
+        isError: mutation.isError,
+        error: mutation.error,
+    };
+};

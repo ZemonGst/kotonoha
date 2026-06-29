@@ -175,3 +175,17 @@ export const deleteFormInputSchema = z.object({
 });
 
 export type DeleteFormInputType = z.infer<typeof deleteFormInputSchema>;
+
+export const exportResponsesCsvInputSchema = z.object({
+    publishedFormId: z.string().uuid().describe("Unique identifier of the published form"),
+    userId: z.string().uuid().describe("ID of the user requesting the export"),
+});
+
+export type ExportResponsesCsvInputType = z.infer<typeof exportResponsesCsvInputSchema>;
+
+export const exportResponsesCsvOutputSchema = z.object({
+    csv: z.string().describe("The generated CSV data as a string"),
+    filename: z.string().describe("The suggested filename for the CSV download"),
+});
+
+export type ExportResponsesCsvOutputType = z.infer<typeof exportResponsesCsvOutputSchema>;

@@ -1,7 +1,10 @@
-import { db, eq, and, asc, inArray, sql } from "@repo/database";
+import { db, eq, and, asc, desc, inArray, sql } from "@repo/database";
 import { formsTable } from "@repo/database/models/form";
 import { formFieldsTable } from "@repo/database/models/form-field";
 import { defaultTemplatesTable } from "@repo/database/models/default_templates";
+import { publishedFormsTable } from "@repo/database/models/published-form";
+import { responsesTable } from "@repo/database/models/response";
+import Papa from "papaparse";
 
 import { 
     CreateFormInputType, 
@@ -29,7 +32,10 @@ import {
     SaveDeltaInputType,
     saveDeltaInputSchema,
     DeleteFormInputType,
-    deleteFormInputSchema
+    deleteFormInputSchema,
+    ExportResponsesCsvInputType,
+    exportResponsesCsvInputSchema,
+    exportResponsesCsvOutputSchema
 } from "./model";
 
 class FormService {
@@ -506,6 +512,94 @@ class FormService {
             .where(eq(formsTable.id, formId));
 
         return true;
+    }
+
+    public async exportResponsesToCsv(payload: ExportResponsesCsvInputType) {
+        const { publishedFormId, userId } = await exportResponsesCsvInputSchema.parseAsync(payload);
+
+        // Fetch published form to verify ownership and get parent formId
+        const publishedFormResult = await db
+            .select({
+                formId: publishedFormsTable.formId,
+                publishedBy: publishedFormsTable.publishedBy
+            })
+            .from(publishedFormsTable)
+            .where(eq(publishedFormsTable.id, publishedFormId));
+
+        const pForm = publishedFormResult[0];
+        if (!pForm || pForm.publishedBy !== userId) {
+            throw new Error("Form not found or you do not have permission to view its responses");
+        }
+
+        // Fetch parent form for title
+        const formResult = await db
+            .select({ title: formsTable.title })
+            .from(formsTable)
+            .where(eq(formsTable.id, pForm.formId));
+
+        const formTitle = formResult[0]?.title || "Form";
+
+        // Fetch fields to build column headers
+        const fields = await db
+            .select({
+                id: formFieldsTable.id,
+                label: formFieldsTable.label
+            })
+            .from(formFieldsTable)
+            .where(eq(formFieldsTable.formId, pForm.formId))
+            .orderBy(asc(formFieldsTable.order));
+
+        // Create a mapping from field ID to label
+        const fieldMap: Record<string, string> = {};
+        for (const field of fields) {
+            fieldMap[field.id] = field.label;
+        }
+
+        // Fetch all responses
+        const responses = await db
+            .select()
+            .from(responsesTable)
+            .where(eq(responsesTable.publishedFormId, publishedFormId))
+            .orderBy(desc(responsesTable.submittedAt));
+
+        // Construct CSV rows
+        const rows = responses.map((r, index) => {
+            const row: Record<string, any> = {
+                "Response ID": r.id,
+                "Submitted At": r.submittedAt.toISOString(),
+            };
+
+            const responseData = r.responseData as Record<string, unknown>;
+
+            for (const field of fields) {
+                const value = responseData[field.id];
+                // Handle different value types (arrays for multiple choice, booleans, objects)
+                if (value === null || value === undefined) {
+                    row[field.label] = "";
+                } else if (Array.isArray(value)) {
+                    row[field.label] = value.join(", ");
+                } else if (typeof value === "boolean") {
+                    row[field.label] = value ? "Yes" : "No";
+                } else if (typeof value === "object") {
+                    row[field.label] = JSON.stringify(value);
+                } else {
+                    row[field.label] = String(value);
+                }
+            }
+            return row;
+        });
+
+        // Generate CSV string using papaparse
+        const csvString = Papa.unparse(rows);
+
+        // Sanitize filename
+        const safeTitle = formTitle.replace(/[^a-z0-9]/gi, '_').toLowerCase();
+        const filename = `${safeTitle}_responses.csv`;
+
+        return exportResponsesCsvOutputSchema.parseAsync({
+            csv: csvString,
+            filename
+        });
     }
 }
 
