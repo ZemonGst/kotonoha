@@ -26,9 +26,6 @@ const navItems = [
     { label: "Responses",       href: "/dashboard/responses", icon: Inbox },
     { label: "Analytics",       href: "/dashboard/analytics", icon: BarChart2 },
     { label: "Archived Forms",  href: "/dashboard/archived-forms",  icon: Archive },
-    { label: "Templates",       href: "/dashboard/templates", icon: Layout },
-    { label: "Explore",         href: "/dashboard/explore",   icon: Search },
-    { label: "Settings",        href: "/dashboard/settings",  icon: Settings },
 ];
 
 function getInitials(name?: string) {
