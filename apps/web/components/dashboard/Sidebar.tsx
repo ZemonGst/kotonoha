@@ -44,15 +44,15 @@ export function Sidebar() {
 
     return (
         <aside className="sidebar">
-            {/* Logo */}
-            <div className="sidebar-logo">
+            {/* Logo — clicking navigates to the home dashboard */}
+            <Link href="/dashboard" className="sidebar-logo" style={{ textDecoration: "none" }}>
                 <div className="sidebar-logo-icon">
                     <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
                         <path d="M2 4h12M2 8h8M2 12h10" stroke="#fff" strokeWidth="2" strokeLinecap="round" />
                     </svg>
                 </div>
                 <span className="sidebar-logo-text">Kotonoha</span>
-            </div>
+            </Link>
 
             {/* Nav */}
             <nav className="sidebar-nav">

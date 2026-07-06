@@ -16,7 +16,13 @@ import { Input } from "~/components/ui/input";
 import { Textarea } from "~/components/ui/textarea";
 import { Button } from "~/components/ui/button";
 
-export function CreateFormModal({ children }: { children: React.ReactNode }) {
+export function CreateFormModal({
+    children,
+    onSuccess: onSuccessCallback,
+}: {
+    children: React.ReactNode;
+    onSuccess?: () => void;
+}) {
     const [open, setOpen] = useState(false);
     const [title, setTitle] = useState("");
     const [description, setDescription] = useState("");
@@ -28,7 +34,10 @@ export function CreateFormModal({ children }: { children: React.ReactNode }) {
             setOpen(false);
             setTitle("");
             setDescription("");
-            
+
+            // Notify parent so it can refresh its data (e.g. invalidate queries)
+            onSuccessCallback?.();
+
             // Redirect to the form builder page
             router.push(`/dashboard/form/${form.id}`);
         }
