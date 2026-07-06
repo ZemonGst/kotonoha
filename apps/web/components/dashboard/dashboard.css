@@ -18,6 +18,18 @@
   --text-muted:       #4A4D65;
 }
 
+/* Hide scrollbar globally for dashboard — scroll still works */
+html, body {
+  scrollbar-width: none;       /* Firefox */
+  -ms-overflow-style: none;   /* IE / Edge legacy */
+}
+
+html::-webkit-scrollbar,
+body::-webkit-scrollbar {
+  display: none;               /* Chrome, Safari, Edge */
+}
+
+
 /* -----------------------------------------------------------------------
    Shell root wrappers
    ----------------------------------------------------------------------- */
@@ -357,6 +369,14 @@
   min-height: calc(100vh - 60px);
   padding: 32px;
   background: var(--bg-page);
+  /* Hide scrollbar but keep scroll functional */
+  overflow-y: auto;
+  scrollbar-width: none;         /* Firefox */
+  -ms-overflow-style: none;     /* IE / Edge legacy */
+}
+
+.page-content::-webkit-scrollbar {
+  display: none;                 /* Chrome, Safari, Edge */
 }
 
 /* -----------------------------------------------------------------------
