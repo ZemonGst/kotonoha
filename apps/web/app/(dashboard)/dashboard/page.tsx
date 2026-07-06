@@ -30,11 +30,7 @@ import { useGetAllForms } from "~/hooks/draft";
 import { useDashboardAnalytics } from "~/hooks/analytics";
 import { CreateFormModal } from "~/components/dashboard/CreateFormModal";
 
-// ─── Types ───────────────────────────────────────────────────────────────────
-
 type FormStatus = "draft" | "active" | "archived";
-
-// ─── Status badge config ─────────────────────────────────────────────────────
 
 const statusConfig: Record<FormStatus, { label: string; color: string; bg: string }> = {
     active:   { label: "Published", color: "#10b981", bg: "rgba(16,185,129,0.12)" },
@@ -64,8 +60,6 @@ function StatusBadge({ status }: { status: FormStatus }) {
         </span>
     );
 }
-
-// ─── Skeleton loaders ─────────────────────────────────────────────────────────
 
 function StatCardSkeleton() {
     return (
@@ -120,8 +114,6 @@ function FormCardSkeleton() {
     );
 }
 
-// ─── Form Card ────────────────────────────────────────────────────────────────
-
 function FormCard({ form }: { form: { id: string; title: string; description?: string | null; status: FormStatus; updatedAt: string } }) {
     const [menuOpen, setMenuOpen] = useState(false);
 
@@ -140,8 +132,7 @@ function FormCard({ form }: { form: { id: string; title: string; description?: s
             }}
             className="form-card-hover"
         >
-            {/* Header */}
-            <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 12 }}>
+                        <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 12 }}>
                 <div style={{ minWidth: 0, flex: 1 }}>
                     <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap", marginBottom: 4 }}>
                         <span style={{ fontSize: 14, fontWeight: 600, color: "#FFFFFF", lineHeight: 1.4 }}>
@@ -219,8 +210,7 @@ function FormCard({ form }: { form: { id: string; title: string; description?: s
                 </div>
             </div>
 
-            {/* Footer */}
-            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12 }}>
+                        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12 }}>
                 <span style={{ display: "flex", alignItems: "center", gap: 5, fontSize: 12, color: "#4A4D65" }}>
                     <Clock size={12} />
                     {formatDistanceToNow(new Date(form.updatedAt), { addSuffix: true })}
@@ -250,8 +240,6 @@ function FormCard({ form }: { form: { id: string; title: string; description?: s
         </div>
     );
 }
-
-// ─── Empty State ──────────────────────────────────────────────────────────────
 
 function EmptyState({ onFormCreated }: { onFormCreated: () => void }) {
     return (
@@ -305,13 +293,10 @@ function EmptyState({ onFormCreated }: { onFormCreated: () => void }) {
     );
 }
 
-// ─── Main Dashboard Page ──────────────────────────────────────────────────────
-
 export default function DashboardPage() {
     const router = useRouter();
 
-    // ── Real data hooks (follows the same refetch() pattern used across all dashboard pages) ──
-    const { user, isLoading: isUserLoading } = useGetMe();
+        const { user, isLoading: isUserLoading } = useGetMe();
     const { analytics, isLoading: isAnalyticsLoading, refetch: refetchAnalytics } = useDashboardAnalytics();
     const { forms, isLoading: isFormsLoading, refetch: refetchForms } = useGetAllForms();
 
@@ -321,14 +306,12 @@ export default function DashboardPage() {
         refetchAnalytics();
     };
 
-    // ── Derived values ───────────────────────────────────────────────────────
-    const firstName = isUserLoading ? "..." : user?.fullName?.split(" ")[0] || "there";
+        const firstName = isUserLoading ? "..." : user?.fullName?.split(" ")[0] || "there";
 
     // Show only the 5 most recently updated forms
     const recentForms = forms?.slice(0, 5) ?? [];
 
-    // ── Stat card definitions — driven by live analytics data ────────────────
-    const statsCards = [
+        const statsCards = [
         {
             id: "total",
             label: "Total Forms",
@@ -363,8 +346,7 @@ export default function DashboardPage() {
         },
     ];
 
-    // ── Quick actions definition ──────────────────────────────────────────────
-    const quickActions = [
+        const quickActions = [
         {
             label: "Create Blank Form",
             desc: "Start from scratch",
@@ -450,8 +432,7 @@ export default function DashboardPage() {
 
             <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
 
-                {/* ── 1. Welcome Section ──────────────────────────────────── */}
-                <div
+                                <div
                     style={{
                         background: "#0E0F1A",
                         border: "1px solid rgba(255,255,255,0.07)",
@@ -513,8 +494,7 @@ export default function DashboardPage() {
                     </div>
                 </div>
 
-                {/* ── 2. Statistics Cards ─────────────────────────────────── */}
-                <div
+                                <div
                     className="stats-grid"
                     style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 16 }}
                 >
@@ -569,8 +549,7 @@ export default function DashboardPage() {
                     }
                 </div>
 
-                {/* ── 3. Recent Forms + Right Column ──────────────────────── */}
-                <div
+                                <div
                     className="dashboard-main-grid"
                     style={{ display: "grid", gridTemplateColumns: "1fr 320px", gap: 20, alignItems: "start" }}
                 >
@@ -614,11 +593,9 @@ export default function DashboardPage() {
                         )}
                     </div>
 
-                    {/* Right Column */}
-                    <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
+                                        <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
 
-                        {/* ── 4. Quick Actions ──────────────────────────────── */}
-                        <div
+                                                <div
                             style={{
                                 background: "#0E0F1A",
                                 border: "1px solid rgba(255,255,255,0.07)",
@@ -690,8 +667,7 @@ export default function DashboardPage() {
                             </div>
                         </div>
 
-                        {/* ── 5. Recent Activity ────────────────────────────── */}
-                        <div
+                                                <div
                             style={{
                                 background: "#0E0F1A",
                                 border: "1px solid rgba(255,255,255,0.07)",

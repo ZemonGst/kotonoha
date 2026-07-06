@@ -1,8 +1,6 @@
 /* === Dashboard Shell === */
 
-/* -----------------------------------------------------------------------
-   CSS Variables (extends auth.css — same design token set)
-   ----------------------------------------------------------------------- */
+
 :root {
   --bg-page:          #080910;
   --bg-sidebar:       #0C0D18;
@@ -30,9 +28,7 @@ body::-webkit-scrollbar {
 }
 
 
-/* -----------------------------------------------------------------------
-   Shell root wrappers
-   ----------------------------------------------------------------------- */
+
 
 /* Full-height flex container — sidebar on left, main area fills rest */
 .dashboard-root {
@@ -50,9 +46,7 @@ body::-webkit-scrollbar {
   flex-direction: column;
 }
 
-/* -----------------------------------------------------------------------
-   Sidebar
-   ----------------------------------------------------------------------- */
+
 .sidebar {
   position: fixed;
   left: 0; top: 0; bottom: 0;
@@ -191,9 +185,7 @@ body::-webkit-scrollbar {
   text-overflow: ellipsis;
 }
 
-/* -----------------------------------------------------------------------
-   Topbar
-   ----------------------------------------------------------------------- */
+
 .topbar {
   position: fixed;
   top: 0;
@@ -359,9 +351,7 @@ body::-webkit-scrollbar {
   cursor: not-allowed;
 }
 
-/* -----------------------------------------------------------------------
-   Page content wrapper
-   ----------------------------------------------------------------------- */
+
 .page-content {
   /* Topbar is fixed at 60px — push content below it */
   margin-top: 60px;
@@ -379,9 +369,7 @@ body::-webkit-scrollbar {
   display: none;                 /* Chrome, Safari, Edge */
 }
 
-/* -----------------------------------------------------------------------
-   Builder Mode Overrides
-   ----------------------------------------------------------------------- */
+
 
 /* Make the main area take the full screen width */
 .is-builder-mode .dashboard-main {
