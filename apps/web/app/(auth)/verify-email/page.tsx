@@ -8,6 +8,7 @@ import { useVerifyOTP, useResendOTP } from '~/hooks/api/auth'
 import gsap from 'gsap'
 import { useGSAP } from '@gsap/react'
 import '~/components/auth/auth.css'
+import { Logo } from '~/components/ui/Logo'
 
 function VerifyOTPContent() {
   const router = useRouter()
@@ -211,10 +212,7 @@ export default function VerifyOTPPage() {
 
       <nav className="auth-topbar">
         <div className="auth-topbar-logo">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
-          </svg>
-          <span>Kotonoha</span>
+          <Logo iconSize={36} textSize={20} />
         </div>
       </nav>
 

@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useGetMe } from "~/hooks/api/dashboard";
 import { CreateFormModal } from "./CreateFormModal";
+import { Logo } from "~/components/ui/Logo";
 
 import {
     Plus,
@@ -46,12 +47,7 @@ export function Sidebar() {
         <aside className="sidebar">
             {/* Logo — clicking navigates to the home dashboard */}
             <Link href="/dashboard" className="sidebar-logo" style={{ textDecoration: "none" }}>
-                <div className="sidebar-logo-icon">
-                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-                        <path d="M2 4h12M2 8h8M2 12h10" stroke="#fff" strokeWidth="2" strokeLinecap="round" />
-                    </svg>
-                </div>
-                <span className="sidebar-logo-text">Kotonoha</span>
+                <Logo iconSize={36} textSize={20} />
             </Link>
 
             {/* Nav */}

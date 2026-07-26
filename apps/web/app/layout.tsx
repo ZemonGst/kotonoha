@@ -13,8 +13,8 @@ const geistMono = localFont({
 });
 
 export const metadata: Metadata = {
-  title: "Streamyst",
-  description: "Media Forwarding",
+  title: "Kotonoha — Build Beautiful Forms",
+  description: "The form builder that feels like magic. Drag, drop, publish, and watch responses pour in.",
 };
 
 export default function RootLayout({

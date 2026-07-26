@@ -7,6 +7,7 @@ import { useSignup } from '~/hooks/api/auth'
 import gsap from 'gsap'
 import { useGSAP } from '@gsap/react'
 import '~/components/auth/auth.css'
+import { Logo } from '~/components/ui/Logo'
 
 export default function SignUpPage() {
   const { createUserWithEmailAndPasswordAsync } = useSignup()
@@ -98,10 +99,7 @@ export default function SignUpPage() {
 
       <nav className="auth-topbar">
         <div className="auth-topbar-logo">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
-          </svg>
-          <span>Kotonoha</span>
+          <Logo iconSize={36} textSize={20} />
         </div>
         <div className="auth-topbar-right">
           <span className="auth-topbar-hint">Already have an account?</span>
