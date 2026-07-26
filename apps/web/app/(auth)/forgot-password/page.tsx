@@ -137,9 +137,9 @@ export default function ForgotPasswordPage() {
       <div className="auth-noise" aria-hidden="true" />
 
       <nav className="auth-topbar">
-        <div className="auth-topbar-logo">
+        <Link href="/" className="auth-topbar-logo" style={{ textDecoration: 'none' }}>
           <Logo iconSize={36} textSize={20} />
-        </div>
+        </Link>
         <div className="auth-topbar-right">
           <span className="auth-topbar-hint">Remember your password?</span>
           <Link href="/login" className="auth-topbar-btn">Log in</Link>

@@ -14,9 +14,9 @@ export function Logo({
   showText = true,
 }: LogoProps) {
   return (
-    <div className={`flex items-center gap-1 select-none ${className}`}>
+    <div className={`flex items-center select-none ${className}`} style={{ gap: 0 }}>
       {/* Custom SVG Kotonoha Emblem */}
-      <div 
+      <div
         className="relative flex items-center justify-center rounded-xl shadow-sm overflow-hidden flex-shrink-0 transition-transform hover:scale-105 duration-200"
         style={{ width: `${iconSize}px`, height: `${iconSize}px` }}
       >
@@ -37,13 +37,13 @@ export function Logo({
               <stop offset="100%" stopColor="#FFFFFF" stopOpacity="0" />
             </linearGradient>
           </defs>
-          
+
           {/* Rounded base box with red gradient */}
           <rect width="40" height="40" rx="11" fill="url(#kotonoha-grad)" />
-          
+
           {/* Subtle inner shine for premium depth */}
           <rect width="40" height="40" rx="11" fill="url(#k-shine)" />
-          
+
           {/* Dynamic Calligraphic/Geometric K Emblem */}
           <path
             d="M13 10C13 9.44772 13.4477 9 14 9H16C16.5523 9 17 9.44772 17 10V20.5L25.2929 11.2071C25.6834 10.8166 26.3166 10.8166 26.7071 11.2071L28.7071 13.2071C29.0976 13.5976 29.0976 14.2308 28.7071 14.6213L21.5 21.8284L28.8536 29.182C29.2441 29.5725 29.2441 30.2056 28.8536 30.5962L26.8536 32.5962C26.463 32.9867 25.8299 32.9867 25.4393 32.5962L17 24.1569V30C17 30.5523 16.5523 31 16 31H14C13.4477 31 13 30.5523 13 30V10Z"
@@ -54,14 +54,15 @@ export function Logo({
         </svg>
       </div>
 
-      {/* Brand Text */}
+      {/* Brand Text — tight against the icon, reads as one word with the K */}
       {showText && (
-        <span 
-          className="font-extrabold tracking-tight text-white leading-none"
-          style={{ 
+        <span
+          className="font-extrabold text-white leading-none"
+          style={{
             fontSize: `${textSize}px`,
-            fontFamily: "var(--font-sans, inherit)",
-            letterSpacing: "-0.03em"
+            fontFamily: "var(--font-geist-sans, var(--font-sans, inherit))",
+            letterSpacing: "-0.03em",
+            marginLeft: `${Math.round(iconSize * 0.18)}px`,
           }}
         >
           otonoha

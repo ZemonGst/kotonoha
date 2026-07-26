@@ -211,9 +211,9 @@ export default function VerifyOTPPage() {
       <div className="auth-noise" aria-hidden="true" />
 
       <nav className="auth-topbar">
-        <div className="auth-topbar-logo">
+        <Link href="/" className="auth-topbar-logo" style={{ textDecoration: 'none' }}>
           <Logo iconSize={36} textSize={20} />
-        </div>
+        </Link>
       </nav>
 
       <main className="auth-main">
