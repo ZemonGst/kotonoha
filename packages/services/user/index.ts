@@ -89,30 +89,43 @@ class UserService {
     private async validateRefreshToken(
         payload: RequestTokenRefreshInputType
     ) {
-        const { refreshToken } =
-            await requestTokenRefreshInputSchema.parseAsync(payload);
+        console.log("[DEBUG validateRefreshToken] Entry");
+        let refreshToken: string;
+        try {
+            const parsed = await requestTokenRefreshInputSchema.parseAsync(payload);
+            refreshToken = parsed.refreshToken;
+            console.log("[DEBUG validateRefreshToken] Input schema parsed successfully");
+        } catch (error) {
+            console.error("[DEBUG validateRefreshToken] Failed to parse input schema:", error);
+            throw error;
+        }
 
         let decoded: unknown;
         try {
+            console.log("[DEBUG validateRefreshToken] Before JWT verify");
             decoded = JWT.verify(refreshToken, env.JWT_SECRET);
-        } catch {
+            console.log("[DEBUG validateRefreshToken] After JWT verify");
+        } catch (error) {
+            console.error("[DEBUG validateRefreshToken] JWT verify failed:", error);
             throw new Error("Invalid or expired refresh token");
         }
 
-        // Parse and validate the shape of the decoded payload.
+        console.log("[DEBUG validateRefreshToken] Before payload shape validation");
         const parseResult = jwtPayloadSchema.safeParse(decoded);
         if (!parseResult.success) {
+            console.error("[DEBUG validateRefreshToken] Payload shape validation failed:", parseResult.error);
             throw new Error("Malformed token payload");
         }
+        console.log("[DEBUG validateRefreshToken] After payload shape validation");
 
         const jwtPayload: JwtPayloadType = parseResult.data;
 
-        // Reject tokens that were signed as access tokens — prevents an
-        // access token from being used to issue new access tokens.
         if (jwtPayload.tokenType !== "refresh") {
+            console.error("[DEBUG validateRefreshToken] Invalid token type:", jwtPayload.tokenType);
             throw new Error("Invalid token type");
         }
 
+        console.log("[DEBUG validateRefreshToken] Validation successful for userId:", jwtPayload.userId);
         return { userId: jwtPayload.userId };
     }
 
@@ -215,9 +228,19 @@ class UserService {
     // access token using only the verified payload data.
     // The refresh token is NOT rotated — same cookie lives until expiry.
     public async refreshAccessToken(payload: RequestTokenRefreshInputType) {
-        const { userId } = await this.validateRefreshToken(payload);
-        const { token: newAccessToken } = await this.generateAccessToken(userId);
-        return { accessToken: newAccessToken };
+        console.log("[DEBUG UserService.refreshAccessToken] Entry");
+        try {
+            const { userId } = await this.validateRefreshToken(payload);
+            
+            console.log("[DEBUG UserService.refreshAccessToken] Before generateAccessToken");
+            const { token: newAccessToken } = await this.generateAccessToken(userId);
+            console.log("[DEBUG UserService.refreshAccessToken] After generateAccessToken");
+            
+            return { accessToken: newAccessToken };
+        } catch (error) {
+            console.error("[DEBUG UserService.refreshAccessToken] Caught error:", error);
+            throw error;
+        }
     }
 
     // Validates an access token and returns the verified payload — fully stateless.

@@ -111,9 +111,11 @@ export const authRouter = router({
         .meta(postMeta("/refreshAccessToken", "Refresh access token (cookie-based, stateless)"))
         .output(refreshAccessTokenOutputSchema)
         .mutation(async ({ ctx }) => {
+            console.log("[DEBUG refreshAccessToken] Entry");
             console.log("[DEBUG refreshAccessToken] ctx.req.cookies:", (ctx as any).req.cookies);
+            console.log("[DEBUG refreshAccessToken] Reading cookie name: refresh-token");
             const { refreshToken } = getAuthenticationCookie(ctx);
-            console.log("[DEBUG refreshAccessToken] Parsed refreshToken:", !!refreshToken);
+            console.log("[DEBUG refreshAccessToken] Parsed refreshToken exists:", !!refreshToken);
 
             if (!refreshToken) {
                 const err = new Error("Refresh token not found. Please log in again.");
@@ -124,9 +126,12 @@ export const authRouter = router({
             try {
                 const { accessToken } = await userService.refreshAccessToken({ refreshToken });
 
+                console.log("[DEBUG refreshAccessToken] Before writing new access token cookie");
                 // Only update the access token cookie — refresh token is not rotated.
                 setAccessTokenCookie(ctx, accessToken);
+                console.log("[DEBUG refreshAccessToken] After writing new access token cookie");
 
+                console.log("[DEBUG refreshAccessToken] Returning final success response");
                 return { success: true };
             } catch (error) {
                 console.error("[DEBUG refreshAccessToken] Caught exception in refresh flow:", error);
