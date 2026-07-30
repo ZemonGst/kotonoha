@@ -3,7 +3,8 @@ import { z } from "zod";
 const envSchema = z.object({
   PORT: z.string().optional(),
   NODE_ENV: z.enum(["development", "prod"]).default("development"),
-  BASE_URL: z.string().default("http://localhost:8000"),
+  BASE_URL: z.string().url().describe("Public URL of this API server"),
+  FRONTEND_URL: z.string().url().describe("Base URL of the hosted frontend (used for CORS)"),
 });
 
 function createEnv(env: NodeJS.ProcessEnv) {

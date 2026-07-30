@@ -2,6 +2,7 @@ import { db, eq, and, asc } from "@repo/database";
 import { formsTable } from "@repo/database/models/form";
 import { formFieldsTable } from "@repo/database/models/form-field";
 import { publishedFormsTable } from "@repo/database/models/published-form";
+import { env } from "../env";
 import {
     PublishFormInputType,
     publishFormInputSchema,
@@ -15,9 +16,9 @@ export type PublishedFormWithUrlType = PublishedFormType & { url: string };
 
 class PublishFormService {
     public generatePublicFormUrl(publishedFormId: string): string {
-        const baseUrl = process.env.FRONTEND_URL || "http://localhost:3000";
-        return `${baseUrl}/forms/${publishedFormId}`;
+        return `${env.FRONTEND_URL}/forms/${publishedFormId}`;
     }
+
 
     public async publishForm(payload: PublishFormInputType): Promise<PublishedFormWithUrlType> {
         const { formId, userId, expiresAt } = await publishFormInputSchema.parseAsync(payload);

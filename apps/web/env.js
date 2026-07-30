@@ -14,7 +14,7 @@ export const env = createEnv({
    * `NEXT_PUBLIC_`.
    */
   client: {
-    NEXT_PUBLIC_API_URL: z.string().optional(),
+    NEXT_PUBLIC_API_URL: z.string().url().describe("Full tRPC URL of the hosted backend (e.g. https://your-api.onrender.com/trpc)"),
   },
 
   /**
