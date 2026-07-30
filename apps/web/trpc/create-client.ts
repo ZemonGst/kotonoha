@@ -8,7 +8,9 @@ interface CreateTRPCHttpBatchClientClientOpts {
 export const createTRPCHttpBatchClientClient = (opts?: CreateTRPCHttpBatchClientClientOpts) => {
   const c = opts?.enableStreaming ? httpBatchStreamLink : httpLink;
   return c({
-    url: env.NEXT_PUBLIC_API_URL,
+    url: env.NEXT_PUBLIC_API_URL.endsWith("/trpc") 
+      ? env.NEXT_PUBLIC_API_URL 
+      : `${env.NEXT_PUBLIC_API_URL.replace(/\/$/, "")}/trpc`,
     fetch(url, options) {
       return fetch(url, {
         ...options,
