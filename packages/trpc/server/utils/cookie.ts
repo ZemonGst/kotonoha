@@ -17,11 +17,13 @@ const ONE_YEAR   = 365 * ONE_DAY;
 // Individual cookies extend this with their own maxAge.
 // ---------------------------------------------------------------------------
 
+const isProduction = process.env.NODE_ENV === "production";
+
 const BASE_COOKIE_OPTIONS: CookieOptions = {
     path:     "/",
     httpOnly: true,
-    secure:   true,
-    sameSite: "strict",
+    secure:   isProduction,
+    sameSite: isProduction ? "none" : "lax",
 };
 
 // Named option sets — single source of truth for each token's lifetime.
