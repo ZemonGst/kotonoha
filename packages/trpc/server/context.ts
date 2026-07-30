@@ -1,4 +1,5 @@
 import type { CreateExpressContextOptions } from "@trpc/server/adapters/express";
+import type { Request, Response } from "express";
 import {
     createCookieFactory,
     getCookieFactory,
@@ -15,11 +16,13 @@ export async function createContext ({
     req,
     res
 }: CreateExpressContextOptions): Promise<TRPCContext> {
-    const ctx: TRPCContext = {
+    const ctx = {
+        req,
+        res,
         createCookie: createCookieFactory(res),
         getCookie: getCookieFactory(req),
         clearCookie: clearCookieFactory(res),
-    };
+    } as any as TRPCContext;
     
     return ctx;
 }
