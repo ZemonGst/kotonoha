@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect } from "react";
 import { useGetMe, useLogout } from "~/hooks/api/dashboard";
-import { LogOut, FileIcon, Search, FileEdit, Archive, Send } from "lucide-react";
+import { LogOut, FileIcon, Search, FileEdit, Archive, Send, Menu } from "lucide-react";
 import { useGetAllForms } from "~/hooks/draft";
 import { useRouter } from "next/navigation";
 
@@ -20,9 +20,10 @@ function getInitials(name?: string) {
 
 interface TopbarProps {
     title?: string;
+    onMenuClick?: () => void;
 }
 
-export function Topbar({ title = "Dashboard" }: TopbarProps) {
+export function Topbar({ title = "Dashboard", onMenuClick }: TopbarProps) {
     const { user } = useGetMe();
     const { logout, status: logoutStatus } = useLogout();
     const isLoggingOut = logoutStatus === "pending";
@@ -78,7 +79,18 @@ export function Topbar({ title = "Dashboard" }: TopbarProps) {
 
     return (
         <header className="topbar">
-            <span className="topbar-title">{title}</span>
+            <div className="flex items-center gap-3">
+                {onMenuClick && (
+                    <button 
+                        onClick={onMenuClick} 
+                        className="lg:hidden text-[#8B8FA8] hover:text-white p-1 -ml-1 rounded-md hover:bg-[rgba(255,255,255,0.05)] transition-colors"
+                        aria-label="Toggle menu"
+                    >
+                        <Menu size={20} />
+                    </button>
+                )}
+                <span className="topbar-title">{title}</span>
+            </div>
 
             {/* Search */}
             <div className="topbar-search relative" ref={searchRef}>

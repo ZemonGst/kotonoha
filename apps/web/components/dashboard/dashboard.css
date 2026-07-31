@@ -415,3 +415,72 @@ body::-webkit-scrollbar {
   transform: translateX(0);
 }
 
+/* === Responsive Mobile Styles === */
+@media (max-width: 1024px) {
+  .dashboard-main {
+    margin-left: 0;
+  }
+  
+  .topbar {
+    left: 0;
+    padding: 0 16px;
+  }
+  
+  .sidebar {
+    transform: translateX(-100%);
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    z-index: 100;
+  }
+  
+  .sidebar.mobile-open {
+    transform: translateX(0);
+  }
+  
+  .sidebar-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 90;
+    backdrop-filter: blur(2px);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s ease;
+  }
+
+  .sidebar-backdrop.visible {
+    opacity: 1;
+    pointer-events: auto;
+  }
+  
+  .sidebar-hover-zone {
+    display: none;
+  }
+  
+  .page-content {
+    padding: 16px;
+  }
+  
+  .topbar-search {
+    width: 40px;
+    padding: 0;
+    justify-content: center;
+    background: transparent;
+    border-color: transparent;
+  }
+  
+  .topbar-search:focus-within {
+    width: 200px;
+    padding: 0 12px;
+    background: var(--bg-input);
+    border-color: var(--border-hover);
+  }
+  
+  .topbar-search input {
+    display: none;
+  }
+  
+  .topbar-search:focus-within input {
+    display: block;
+  }
+}
+

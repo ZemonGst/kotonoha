@@ -493,3 +493,34 @@
   60%  { transform: scale(1.04); }
   100% { transform: scale(1); }
 }
+
+/* === Responsive Mobile Styles === */
+@media (max-width: 480px) {
+  .auth-main {
+    padding: 60px 16px 20px;
+  }
+  
+  .auth-card {
+    padding: 32px 24px;
+    border-radius: 12px;
+  }
+
+  .card-heading {
+    font-size: 20px;
+  }
+  
+  .auth-topbar {
+    padding: 0 16px;
+  }
+  
+  .otp-row {
+    gap: 6px;
+  }
+  
+  .otp-digit {
+    width: 44px;
+    height: 52px;
+    font-size: 18px;
+  }
+}
+

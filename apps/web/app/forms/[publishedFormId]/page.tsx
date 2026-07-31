@@ -54,17 +54,17 @@ export default function PublicFormPage() {
     }
 
     return (
-        <div className="min-h-screen bg-[#080910] py-12 px-4 sm:px-6 lg:px-8 font-sans">
+        <div className="min-h-screen bg-[#080910] py-6 sm:py-12 px-4 sm:px-6 lg:px-8 font-sans">
             <div className="max-w-2xl mx-auto">
                 <div className="bg-[#131422] border border-[rgba(255,255,255,0.08)] rounded-2xl shadow-2xl overflow-hidden">
-                    <div className="p-8 sm:p-10 border-b border-[rgba(255,255,255,0.05)]">
+                    <div className="p-6 sm:p-10 border-b border-[rgba(255,255,255,0.05)]">
                         <h1 className="text-2xl sm:text-3xl font-bold text-white mb-3">{form.title}</h1>
                         {form.description && (
                             <p className="text-[#8B8FA8] leading-relaxed">{form.description}</p>
                         )}
                     </div>
                     
-                    <div className="p-8 sm:p-10">
+                    <div className="p-6 sm:p-10">
                         <PublicFormClient 
                             publishedFormId={publishedFormId}
                             fields={form.fields as any[]} 

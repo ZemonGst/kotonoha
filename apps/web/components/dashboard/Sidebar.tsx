@@ -38,15 +38,19 @@ function getInitials(name?: string) {
         .toUpperCase()
         .slice(0, 2);
 }
+interface SidebarProps {
+    isMobileOpen?: boolean;
+    onClose?: () => void;
+}
 
-export function Sidebar() {
+export function Sidebar({ isMobileOpen, onClose }: SidebarProps = {}) {
     const pathname = usePathname();
     const { user } = useGetMe();
 
     return (
-        <aside className="sidebar">
+        <aside className={`sidebar ${isMobileOpen ? 'mobile-open' : ''}`}>
             {/* Logo — clicking navigates to the home dashboard */}
-            <Link href="/dashboard" className="sidebar-logo" style={{ textDecoration: "none" }}>
+            <Link href="/dashboard" className="sidebar-logo" style={{ textDecoration: "none" }} onClick={onClose}>
                 <Logo iconSize={36} textSize={20} />
             </Link>
 
@@ -77,6 +81,7 @@ export function Sidebar() {
                             key={href}
                             href={href}
                             className={`nav-item${isActive ? " active" : ""}`}
+                            onClick={onClose}
                         >
                             <Icon className="nav-item-icon" size={16} />
                             {label}

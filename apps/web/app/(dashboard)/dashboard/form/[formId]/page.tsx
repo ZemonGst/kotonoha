@@ -221,6 +221,8 @@ export default function FormBuilderPage() {
     const [previewDevice, setPreviewDevice] = React.useState<'desktop' | 'tablet' | 'mobile'>('desktop');
     const [previewValues, setPreviewValues] = React.useState<Record<string, any>>({});
     const [isPublishModalOpen, setIsPublishModalOpen] = React.useState(false);
+    const [leftPanelOpen, setLeftPanelOpen] = React.useState(false);
+    const [rightPanelOpen, setRightPanelOpen] = React.useState(false);
     
     const { cloneTemplateAsync, isPending: isCloning } = useCloneTemplate();
     const router = useRouter();
@@ -523,16 +525,22 @@ export default function FormBuilderPage() {
                 <div className="flex flex-1 overflow-hidden">
                     {/* Left Panel */}
                     {!isPreviewMode && (
-                        <div className="w-64 border-r border-[rgba(255,255,255,0.07)] bg-[#0C0D18] flex flex-col">
-                            <div className="p-4 border-b border-[rgba(255,255,255,0.07)]">
-                                <h3 className="text-xs font-semibold uppercase tracking-wider text-[#8B8FA8]">Form Elements</h3>
+                        <>
+                            {leftPanelOpen && (
+                                <div className="fixed inset-0 bg-black/50 z-40 lg:hidden" onClick={() => setLeftPanelOpen(false)} />
+                            )}
+                            <div className={`fixed inset-y-0 left-0 z-50 w-64 border-r border-[rgba(255,255,255,0.07)] bg-[#0C0D18] flex flex-col transform transition-transform duration-300 lg:relative lg:translate-x-0 ${leftPanelOpen ? 'translate-x-0' : '-translate-x-full'}`}>
+                                <div className="p-4 border-b border-[rgba(255,255,255,0.07)] flex items-center justify-between">
+                                    <h3 className="text-xs font-semibold uppercase tracking-wider text-[#8B8FA8]">Form Elements</h3>
+                                    <button className="lg:hidden text-[#8B8FA8] hover:text-white" onClick={() => setLeftPanelOpen(false)}>✕</button>
+                                </div>
+                                <div className="flex-1 p-3 flex flex-col gap-2 overflow-y-auto pb-24 lg:pb-3">
+                                    {fieldTypes.map(f => (
+                                        <SidebarField key={f.type} type={f.type} label={f.label} icon={f.icon} />
+                                    ))}
+                                </div>
                             </div>
-                            <div className="flex-1 p-3 flex flex-col gap-2 overflow-y-auto">
-                                {fieldTypes.map(f => (
-                                    <SidebarField key={f.type} type={f.type} label={f.label} icon={f.icon} />
-                                ))}
-                            </div>
-                        </div>
+                        </>
                     )}
 
                     {/* Canvas */}
@@ -551,12 +559,17 @@ export default function FormBuilderPage() {
 
                     {/* Right Panel */}
                     {!isPreviewMode && (
-                        <div className="w-72 border-l border-[rgba(255,255,255,0.07)] bg-[#0C0D18] flex flex-col">
-                            <div className="p-4 border-b border-[rgba(255,255,255,0.07)]">
-                                <h3 className="text-xs font-semibold uppercase tracking-wider text-[#8B8FA8]">
-                                    {selectedField ? 'Field Settings' : 'Form Settings'}
-                                </h3>
-                            </div>
+                        <>
+                            {rightPanelOpen && (
+                                <div className="fixed inset-0 bg-black/50 z-40 lg:hidden" onClick={() => setRightPanelOpen(false)} />
+                            )}
+                            <div className={`fixed inset-y-0 right-0 z-50 w-72 border-l border-[rgba(255,255,255,0.07)] bg-[#0C0D18] flex flex-col transform transition-transform duration-300 lg:relative lg:translate-x-0 ${rightPanelOpen ? 'translate-x-0' : 'translate-x-full'}`}>
+                                <div className="p-4 border-b border-[rgba(255,255,255,0.07)] flex items-center justify-between">
+                                    <h3 className="text-xs font-semibold uppercase tracking-wider text-[#8B8FA8]">
+                                        {selectedField ? 'Field Settings' : 'Form Settings'}
+                                    </h3>
+                                    <button className="lg:hidden text-[#8B8FA8] hover:text-white" onClick={() => setRightPanelOpen(false)}>✕</button>
+                                </div>
                             
                             {selectedField ? (
                                 <Tabs defaultValue="settings" className="flex-1 flex flex-col w-full overflow-hidden mt-2">
@@ -604,6 +617,25 @@ export default function FormBuilderPage() {
                                 </div>
                             )}
                             {selectedField && <FieldConfigDebug selectedField={selectedField} />}
+                            </div>
+                        </>
+                    )}
+                    
+                    {/* Mobile Floating Action Buttons */}
+                    {!isPreviewMode && (
+                        <div className="lg:hidden fixed bottom-6 left-0 right-0 flex justify-center gap-4 z-30 pointer-events-none">
+                            <button 
+                                className="pointer-events-auto bg-[#1A1B2D] border border-[rgba(255,255,255,0.15)] text-white px-5 py-3 rounded-full shadow-2xl flex items-center gap-2 text-sm font-medium hover:bg-[#23243D] transition-colors"
+                                onClick={() => setLeftPanelOpen(true)}
+                            >
+                                Elements
+                            </button>
+                            <button 
+                                className="pointer-events-auto bg-[#1A1B2D] border border-[rgba(255,255,255,0.15)] text-white px-5 py-3 rounded-full shadow-2xl flex items-center gap-2 text-sm font-medium hover:bg-[#23243D] transition-colors"
+                                onClick={() => setRightPanelOpen(true)}
+                            >
+                                Settings
+                            </button>
                         </div>
                     )}
                 </div>
