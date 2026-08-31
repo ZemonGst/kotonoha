@@ -1,18 +1,17 @@
-# Turborepo starter
+# Kotonoha
 
-This Turborepo starter is maintained by the Turborepo core team.
+Kotonoha is a form creation and management dashboard platform.
 
-## Using this example
+## Features
 
-Run the following command:
+- Form Creation, Publishing, and Archiving
+- Responses and Analytics Tracking
+- Form Templates
 
-```sh
-npx create-turbo@latest
-```
+## Architecture
 
-## What's inside?
+This project is a monorepo managed by [Turborepo](https://turborepo.org), using `pnpm` workspaces, React, and tRPC. It includes the following packages/apps:
 
-This Turborepo includes the following packages/apps:
 
 ### Apps and Packages
 
