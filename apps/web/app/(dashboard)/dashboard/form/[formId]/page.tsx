@@ -305,6 +305,7 @@ export default function FormBuilderPage() {
 
     const handleDragStart = (event: any) => {
         setActiveId(event.active.id);
+        setLeftPanelOpen(false); // Close mobile fields panel when dragging starts
     };
 
     const handleDragEnd = (event: DragEndEvent) => {
@@ -509,14 +510,14 @@ export default function FormBuilderPage() {
                                     <span className="text-emerald-500">Saved</span>
                                 ) : null}
                             </div>
-                            <button onClick={handleTogglePreview} className="btn-secondary text-sm h-8 w-8 p-0 mr-2 bg-[rgba(255,255,255,0.05)] border border-[rgba(255,255,255,0.15)] text-white hover:bg-[rgba(255,255,255,0.1)] transition-all flex items-center justify-center" title="Preview Mode">
+                            <button onClick={handleTogglePreview} className="btn-secondary text-sm h-8 w-8 p-0 mr-1 md:mr-2 bg-[rgba(255,255,255,0.05)] border border-[rgba(255,255,255,0.15)] text-white hover:bg-[rgba(255,255,255,0.1)] transition-all flex items-center justify-center" title="Preview Mode">
                                 <Eye size={16} />
                             </button>
-                            <Link href="/dashboard/drafts" className="btn-secondary text-sm h-8 px-4 mr-2 bg-[rgba(255,255,255,0.05)] border border-[rgba(255,255,255,0.15)] text-white hover:bg-[rgba(255,255,255,0.1)] transition-all flex items-center justify-center">
+                            <Link href="/dashboard/drafts" className="btn-secondary hidden lg:flex text-sm h-8 px-4 mr-2 bg-[rgba(255,255,255,0.05)] border border-[rgba(255,255,255,0.15)] text-white hover:bg-[rgba(255,255,255,0.1)] transition-all items-center justify-center">
                                 Drafts
                             </Link>
-                            <button className="btn-secondary text-sm h-8 px-3" onClick={() => store.tracker?.forceSave()}>Save</button>
-                            <button className="btn-primary text-sm h-8 px-3" onClick={() => { store.tracker?.forceSave(); setIsPublishModalOpen(true); }}>Publish</button>
+                            <button className="btn-secondary hidden sm:flex text-sm h-8 px-3" onClick={() => store.tracker?.forceSave()}>Save</button>
+                            <button className="btn-primary text-xs h-7 px-2 md:text-sm md:h-8 md:px-3" onClick={() => { store.tracker?.forceSave(); setIsPublishModalOpen(true); }}>Publish</button>
                         </div>
                     </div>
                 )}
@@ -628,7 +629,7 @@ export default function FormBuilderPage() {
                                 className="pointer-events-auto bg-[#1A1B2D] border border-[rgba(255,255,255,0.15)] text-white px-5 py-3 rounded-full shadow-2xl flex items-center gap-2 text-sm font-medium hover:bg-[#23243D] transition-colors"
                                 onClick={() => setLeftPanelOpen(true)}
                             >
-                                Elements
+                                Form Fields
                             </button>
                             <button 
                                 className="pointer-events-auto bg-[#1A1B2D] border border-[rgba(255,255,255,0.15)] text-white px-5 py-3 rounded-full shadow-2xl flex items-center gap-2 text-sm font-medium hover:bg-[#23243D] transition-colors"
