@@ -7,15 +7,15 @@ import {
     ArrowLeft, Loader2, AlertTriangle, Type, AlignLeft, Hash, Mail, 
     Phone, ChevronDown, Circle, CheckSquare, ToggleLeft, Calendar, 
     Clock, CalendarClock, Lock, GripVertical, Trash2, Settings,
-    Eye, Monitor, Tablet, Smartphone, GitBranch, Star
+    Eye, Monitor, Tablet, Smartphone, GitBranch, Star, CheckCircle2
 } from "lucide-react";
 import { useGetFormById, useGetFields, useSaveDelta, useUpdateForm } from "~/hooks/form";
 import { useCloneTemplate } from "~/hooks/default-template";
 import { evaluateLogic } from "~/lib/logic-evaluator";
 import { useFormBuilderStore } from "~/stores/formBuilderStore";
 import { 
-    DndContext, DragEndEvent, useDraggable, useDroppable, closestCenter, 
-    DragOverlay, useSensor, useSensors, PointerSensor, KeyboardSensor,
+    DndContext, DragEndEvent, useDraggable, useDroppable, closestCenter,
+    DragOverlay, useSensor, useSensors, PointerSensor, KeyboardSensor, TouchSensor,
     useDndContext
 } from "@dnd-kit/core";
 import { 
@@ -27,6 +27,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "~/components/ui/tabs";
 import { SettingsTab, StylingTab, FieldConfigDebug } from "~/components/form-builder/field-settings";
 import { PublishModal } from "~/components/form-builder/publish-modal";
 import { FieldRenderer, fieldTypes } from "~/components/form-builder/field-renderer";
+import { toast } from "sonner";
 
 
 
@@ -235,6 +236,12 @@ export default function FormBuilderPage() {
         useSensor(PointerSensor, {
             activationConstraint: {
                 distance: 5,
+            },
+        }),
+        useSensor(TouchSensor, {
+            activationConstraint: {
+                delay: 250,
+                tolerance: 5,
             },
         }),
         useSensor(KeyboardSensor, {
@@ -507,7 +514,7 @@ export default function FormBuilderPage() {
                                 ) : store.isDirty ? (
                                     <span className="text-[#8B8FA8]">Unsaved Changes</span>
                                 ) : store.lastSavedAt ? (
-                                    <span className="text-emerald-500">Saved</span>
+                                    <span className="text-emerald-500"><CheckCircle2 size={16} /></span>
                                 ) : null}
                             </div>
                             <button onClick={handleTogglePreview} className="btn-secondary text-sm h-8 w-8 p-0 mr-1 md:mr-2 bg-[rgba(255,255,255,0.05)] border border-[rgba(255,255,255,0.15)] text-white hover:bg-[rgba(255,255,255,0.1)] transition-all flex items-center justify-center" title="Preview Mode">
@@ -517,7 +524,7 @@ export default function FormBuilderPage() {
                                 Drafts
                             </Link>
                             <button className="btn-secondary hidden sm:flex text-sm h-8 px-3" onClick={() => store.tracker?.forceSave()}>Save</button>
-                            <button className="btn-primary text-xs h-7 px-2 md:text-sm md:h-8 md:px-3" onClick={() => { store.tracker?.forceSave(); setIsPublishModalOpen(true); }}>Publish</button>
+                            <button className="btn-primary hidden sm:flex text-xs h-7 px-2 md:text-sm md:h-8 md:px-3" onClick={() => { store.tracker?.forceSave(); setIsPublishModalOpen(true); }}>Publish</button>
                         </div>
                     </div>
                 )}
@@ -536,9 +543,34 @@ export default function FormBuilderPage() {
                                     <button className="lg:hidden text-[#8B8FA8] hover:text-white" onClick={() => setLeftPanelOpen(false)}>✕</button>
                                 </div>
                                 <div className="flex-1 p-3 flex flex-col gap-2 overflow-y-auto pb-24 lg:pb-3">
-                                    {fieldTypes.map(f => (
-                                        <SidebarField key={f.type} type={f.type} label={f.label} icon={f.icon} />
-                                    ))}
+                                    {/* Desktop: fully draggable sidebar fields */}
+                                    <div className="hidden lg:flex flex-col gap-2">
+                                        {fieldTypes.map(f => (
+                                            <SidebarField key={f.type} type={f.type} label={f.label} icon={f.icon} />
+                                        ))}
+                                    </div>
+                                    {/* Mobile: tap-to-add only, no drag listeners */}
+                                    <div className="flex lg:hidden flex-col gap-2">
+                                        {fieldTypes.map(f => (
+                                            <button
+                                                key={f.type}
+                                                type="button"
+                                                className="flex items-center gap-3 p-3 rounded-md active:bg-[rgba(255,255,255,0.08)] text-sm text-[#8B8FA8] active:text-white transition-colors border border-transparent active:border-[rgba(255,255,255,0.12)] w-full text-left"
+                                                onPointerUp={() => {
+                                                    const sortedFields = [...store.fields].sort((a, b) => a.order - b.order);
+                                                    const first = sortedFields[0];
+                                                    const insertOrder = first ? first.order - 1.0 : 1.0;
+                                                    store.addField(f.type, f.label, insertOrder);
+                                                    toast.success(`${f.label} added`, { duration: 1500 });
+                                                }}
+                                            >
+                                                <span className="w-7 h-7 rounded bg-[rgba(255,255,255,0.05)] flex items-center justify-center shrink-0">
+                                                    <f.icon size={15} />
+                                                </span>
+                                                <span className="select-none">{f.label}</span>
+                                            </button>
+                                        ))}
+                                    </div>
                                 </div>
                             </div>
                         </>
@@ -624,18 +656,24 @@ export default function FormBuilderPage() {
                     
                     {/* Mobile Floating Action Buttons */}
                     {!isPreviewMode && (
-                        <div className="lg:hidden fixed bottom-6 left-0 right-0 flex justify-center gap-4 z-30 pointer-events-none">
+                        <div className="lg:hidden fixed bottom-6 left-0 right-0 flex justify-center gap-3 z-30 pointer-events-none px-4">
                             <button 
-                                className="pointer-events-auto bg-[#1A1B2D] border border-[rgba(255,255,255,0.15)] text-white px-5 py-3 rounded-full shadow-2xl flex items-center gap-2 text-sm font-medium hover:bg-[#23243D] transition-colors"
+                                className="pointer-events-auto bg-[#1A1B2D] border border-[rgba(255,255,255,0.15)] text-white px-4 py-3 rounded-full shadow-2xl flex items-center justify-center text-sm font-medium hover:bg-[#23243D] transition-colors"
                                 onClick={() => setLeftPanelOpen(true)}
                             >
                                 Form Fields
                             </button>
                             <button 
-                                className="pointer-events-auto bg-[#1A1B2D] border border-[rgba(255,255,255,0.15)] text-white px-5 py-3 rounded-full shadow-2xl flex items-center gap-2 text-sm font-medium hover:bg-[#23243D] transition-colors"
+                                className="pointer-events-auto bg-[#1A1B2D] border border-[rgba(255,255,255,0.15)] text-white px-4 py-3 rounded-full shadow-2xl flex items-center justify-center text-sm font-medium hover:bg-[#23243D] transition-colors"
                                 onClick={() => setRightPanelOpen(true)}
                             >
                                 Settings
+                            </button>
+                            <button 
+                                className="pointer-events-auto bg-[#D93025] border border-[rgba(217,48,37,0.5)] text-white px-5 py-3 rounded-full shadow-2xl flex items-center justify-center text-sm font-bold hover:bg-[#E8352A] transition-colors"
+                                onClick={() => { store.tracker?.forceSave(); setIsPublishModalOpen(true); }}
+                            >
+                                Publish
                             </button>
                         </div>
                     )}
