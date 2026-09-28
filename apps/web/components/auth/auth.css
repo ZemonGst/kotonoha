@@ -513,6 +513,10 @@
     padding: 0 16px;
   }
   
+  .auth-topbar-hint {
+    display: none;
+  }
+  
   .otp-row {
     gap: 6px;
   }

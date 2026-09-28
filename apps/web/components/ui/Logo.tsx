@@ -62,7 +62,7 @@ export function Logo({
             fontSize: `${textSize}px`,
             fontFamily: "var(--font-geist-sans, var(--font-sans, inherit))",
             letterSpacing: "-0.03em",
-            marginLeft: `${Math.round(iconSize * 0.18)}px`,
+            marginLeft: "2px",
           }}
         >
           otonoha
