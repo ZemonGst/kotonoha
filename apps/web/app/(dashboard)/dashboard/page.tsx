@@ -471,12 +471,12 @@ export default function DashboardPage() {
 
                     <div
                         className="welcome-actions"
-                        style={{ display: "flex", alignItems: "center", gap: 10, flexShrink: 0 }}
+                        style={{ display: "flex", alignItems: "center", flexWrap: "wrap", gap: 10, flexShrink: 0 }}
                     >
                         <CreateFormModal onSuccess={handleFormCreated}>
                             <button
                                 className="btn-primary"
-                                style={{ display: "flex", alignItems: "center", gap: 7, whiteSpace: "nowrap" }}
+                                style={{ display: "flex", alignItems: "center", gap: 7, whiteSpace: "nowrap", padding: "8px 14px", fontSize: 13 }}
                             >
                                 <Plus size={15} />
                                 Create New Form
@@ -485,7 +485,7 @@ export default function DashboardPage() {
 
                         <button
                             className="btn-secondary"
-                            style={{ display: "flex", alignItems: "center", gap: 7, whiteSpace: "nowrap" }}
+                            style={{ display: "flex", alignItems: "center", gap: 7, whiteSpace: "nowrap", padding: "8px 14px", fontSize: 13 }}
                             onClick={() => router.push("/dashboard/drafts")}
                         >
                             <LayoutTemplate size={15} />

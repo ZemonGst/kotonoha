@@ -123,6 +123,7 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  white-space: nowrap;
   padding: 9px 20px;
   border: 1px solid var(--lp-border);
   border-radius: 8px;
@@ -146,6 +147,7 @@
   align-items: center;
   justify-content: center;
   gap: 7px;
+  white-space: nowrap;
   padding: 9px 22px;
   background: var(--lp-red);
   border: none;
@@ -907,6 +909,11 @@
 }
 
 @media (max-width: 480px) {
+  .lp-nav { padding: 0 12px; }
+  .lp-nav-links { gap: 8px; }
+  .lp-btn-ghost { padding: 8px 12px; font-size: 13px; }
+  .lp-btn-red { padding: 8px 12px; font-size: 13px; gap: 4px; }
+  .lp-btn-red svg { width: 14px; height: 14px; }
   .lp-hero-title { font-size: 36px; }
   .lp-hero-ctas .lp-btn-red-lg,
   .lp-hero-ctas .lp-btn-outline-lg { width: 100%; }
